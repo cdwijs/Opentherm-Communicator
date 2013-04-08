@@ -1,5 +1,5 @@
 ;*******************************************************************************
-;    ot-communicator.asm                                                       *
+;    ot-comm.inc                                                            *
 ;    Copyright 2013 Cedric de Wijs.                                            *
 ;                                                                              *
 ;    This file is part of Opentherm Communicator                               *
@@ -30,22 +30,50 @@
 ;    OpenTherm,OpenTherm/Plus,OpenTherm/Lite and the OpenTherm logo are        *
 ;    registered trademarks of The OpenTherm Association.                       *
 ;*******************************************************************************
+;This state machine handles the opentherm conversation.
+;It sends the request to the thermostat, handles timeout and parity check
 
-
-
-RES_VECT  CODE    0x0000            
-    GOTO    START                  
-
-MAIN_PROG CODE                     
-
-START
-
- 
-
-    MOVLW 0x55                    
-    GOTO $                       
-
-#include manchester.inc
-#include ot-comm.inc
-
-    END
+;       +-------------+
+;       |Idle         |
+;       |-------------|
+;       |             |
+; +---->|BitMsgBusy=0 |
+; |     +------+------+
+; |            |BitStartMsg
+; |     +------v------+
+; |     |             |
+; |     |-------------|
+; |     |BitStartTx=1 |
+; |     |BitStartRx=1 |
+; |     |BitMsgBusy=1 |
+; |     +------+------+
+; |            |BitRxBusy
+; |     +------v------+
+; |     |             |
+; |     |-------------|
+; |     |BitStartRx=0 |
+; |     |             +
+; |     +------+------+
+; |            |!BitTxBusy
+; |     +------v------+     +---------------+
+; |     |             |     |Timeout        |
+; |     |-------------|     |---------------|
+; |     |BitStartTx=0 |1 sec|               |
+; |     |             |----->               |
+; |     +------+------+     +-------+-------+
+; |            |!BitRxBusy          |
+; |     +------v------+             |
+; |     |CheckMsg     |             |
+; |     |-------------|             |
+; |     |             |             |
+; |     |             |             |
+; |     +------+------+             |
+; |            |<-------------------+
+; |     +------v------+
+; |     |ReportMsg    |
+; |     |-------------|
+; |     |Msg->rs232   |
+; |     |             |
+; |     +------+------+
+; |            |
+; +<-----------+ 

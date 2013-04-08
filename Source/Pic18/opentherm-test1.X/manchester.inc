@@ -12,7 +12,7 @@
 ;    You should have received a copy of the GNU General Public License         *
 ;    along with this software. If not, see <http://www.gnu.org/licenses/>.     *
 ;                                                                              *
-;    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS   * 
+;    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS   *
 ;    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF                *
 ;    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.    *
 ;    IN NO EVENT SHALL THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR      *
@@ -20,14 +20,14 @@
 ;    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE         *
 ;    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                    *
 ;                                                                              *
-;    Disclaimer: I did this project entirely to satisfy my own curiosity,      * 
+;    Disclaimer: I did this project entirely to satisfy my own curiosity,      *
 ;    using data available for free on the internet and electronics and         *
 ;    software I built myself. You may use the information in this software     *
 ;    for your own purposes, and at your own risk. I will not accept any        *
 ;    responsibility for whatever damages might occur from using or applying    *
 ;    the information in this software, or from following directions therein.   *
 ;                                                                              *
-;    OpenTherm,OpenTherm/Plus,OpenTherm/Lite and the OpenTherm logo are        * 
+;    OpenTherm,OpenTherm/Plus,OpenTherm/Lite and the OpenTherm logo are        *
 ;    registered trademarks of The OpenTherm Association.                       *
 ;*******************************************************************************
 ;Manchester code has always a transition in the middle of the transmitted bit.
