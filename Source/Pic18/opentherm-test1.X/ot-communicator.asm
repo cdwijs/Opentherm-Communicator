@@ -31,19 +31,21 @@
 ;    registered trademarks of The OpenTherm Association.                       *
 ;*******************************************************************************
 
+#ifdef  __18F43K22
+	#include P18F43K22.INC
+#endif
+#include variables.inc
+
+resetvect: 	org 0x0000		
+	goto	myreset
+
+myreset: org 0x01ae		;prepare for bootloader
+mainloop:
+	call	tx1Jump
+	goto	mainloop
 
 
-RES_VECT  CODE    0x0000            
-    GOTO    START                  
-
-MAIN_PROG CODE                     
-
-START
-
- 
-
-    MOVLW 0x55                    
-    GOTO $                       
+   
 
 #include manchester.inc
 #include ot-comm.inc

@@ -84,7 +84,7 @@
 
 ;At samplepoint 0, the first rising edge is found. This is the mid-bit point.
 ;The input is not allowed to change at samplepoint 0,1,2,3
-;At samplepoint 4,5,6 the input is allowed to change.
+;At samplepoint 4,5,6,7 the input is allowed to change.
 ;Samplepoint 7 is taken as reference, the next edge in the input signal denotes the mid-bit point.
 ;If no midbit is found at samplepoint 13, the input data is invalid.
 
@@ -101,7 +101,7 @@
 ; +---->|BitTxBusy=0|
 ; |     +-----+-----+
 ; |           |
-; |           |BitStartTx
+; |           |BitTxStart
 ; |           |
 ; |     +-----v-----+
 ; |     |SendStartA |
@@ -158,6 +158,8 @@
 ; |     |           |          |
 ; |     |BitRxBusy=1|          |
 ; |     +-----------+          |
+; |BitRxAbort |                |
+; |<----------+                |
 ; |           |Edge            |
 ; |           |<---------------|------+
 ; |     +-----v-----+          |      |
@@ -192,21 +194,21 @@
 ;       |Sample 5   |                 |
 ;       |-----------|                 |
 ;       |           |                 |
-;       |           +                 |
+;       |           |                 |
 ;       +-----+-----+                 |
 ;             |100us                  |
 ;       +-----v-----+                 |
 ;       |Sample 6   |                 |
 ;       |-----------|                 |
 ;       |           |                 |
-;       |           +                 |
+;       |           |                 |
 ;       +-----+-----+                 |
 ;             |100us                  |
 ;       +-----v-----+                 +
 ;       |Sample 7   |                 |
 ;       |-----------|                 |
 ;       |           |                 |
-;       |           +                 |
+;       |           |                 |
 ;       +-----+-----+                 |
 ;             |100us                  |
 ;       +-----v-----+                 |
@@ -248,3 +250,49 @@
 ;       |Error      |
 ;       |State=idle |
 ;       +-----------+
+
+#define MASK_JUMP_8 b'00001110'
+
+;jumptable StateTx1
+;a=1 BSR register, 0=access bank
+;d=0 wreg, d=1 register
+tx1Jump
+	movlw 	high(tx1Jump)  ; set pclath to start of jump table
+    movwf 	PCLATH,ACCESS
+	rlcf	myTx0State,w,ACCESS
+	andlw	MASK_JUMP_8
+	addwf	PCL,f,ACCESS
+	bra		tx0State0
+	bra		tx0State1
+	bra		tx0State2
+	bra		tx0State3
+	bra		tx0State4
+	bra		tx0State5
+	bra		tx0State6
+	bra		tx0State7
+;#if high(tx1Jump) != high($) ;MPLAB X: "Operand contains unresolvable labels or is too complex", works in MPLAB
+;	error "Jumptable crosses boundery"
+;#endif
+tx0State0:
+	incf 	myTx0State,f,ACCESS
+	bra tx0Done
+tx0State1:
+	incf 	myTx0State,f,ACCESS
+	bra tx0Done
+tx0State2:
+	incf 	myTx0State,f,ACCESS
+	bra tx0Done
+tx0State3:
+	incf 	myTx0State,f,ACCESS
+	bra tx0Done
+tx0State4:
+	clrf 	myTx0State,ACCESS
+	bra tx0Done
+tx0State5:
+tx0State6:
+tx0State7:
+	clrf 	myTx0State,ACCESS
+	bra tx0Done
+tx0Done:
+	
+	return

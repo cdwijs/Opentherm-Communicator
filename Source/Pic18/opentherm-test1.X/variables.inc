@@ -1,5 +1,5 @@
 ;*******************************************************************************
-;    ot-comm.inc                                                            *
+;    variables.inc                                                            *
 ;    Copyright 2013 Cedric de Wijs.                                            *
 ;                                                                              *
 ;    This file is part of Opentherm Communicator                               *
@@ -30,50 +30,19 @@
 ;    OpenTherm,OpenTherm/Plus,OpenTherm/Lite and the OpenTherm logo are        *
 ;    registered trademarks of The OpenTherm Association.                       *
 ;*******************************************************************************
-;This state machine handles the opentherm conversation.
-;It sends the request to the thermostat, handles timeout and parity check
+#define bitTx0
 
-;       +-------------+
-;       |Idle         |
-;       |-------------|
-;       |             |
-; +---->|BitMsgBusy=0 |
-; |     +------+------+
-; |            |BitStartMsg
-; |     +------v------+
-; |     |             |
-; |     |-------------|
-; |     |BitTxStart=1 |
-; |     |BitRxStart=1 |
-; |     |BitMsgBusy=1 |
-; |     +------+------+
-; |            |BitRxBusy
-; |     +------v------+
-; |     |             |
-; |     |-------------|
-; |     |BitRxStart=0 |
-; |     |             +
-; |     +------+------+
-; |            |!BitTxBusy
-; |     +------v------+     +---------------+
-; |     |             |     |Timeout        |
-; |     |-------------|     |---------------|
-; |     |BitTxStart=0 |1 sec| BitRxAbort=1  |
-; |     |             |----->               |
-; |     +------+------+     +-------+-------+
-; |            |!BitRxBusy          |!BitRxBusy
-; |     +------v------+      +------v--------+
-; |     |CheckMsg     |      |               |
-; |     |-------------|      |---------------|
-; |     |             |      | BitRxAbort=0  |
-; |     |             |      |               |
-; |     +------+------+      |---------------|
-; |            |<-------------------+
-; |     +------v------+
-; |     |ReportMsg    |
-; |     |-------------|
-; |     |Msg->rs232   |
-; |     |             |
-; |     +------+------+
-; |            |
-; +<-----------+ 
+#define RAMSTART_ACCESS	0x00
+	cblock	RAMSTART_ACCESS	
+		;manchester transmitters
+		myTx0State:1
+		myTx1State:1
+		myTx2State:1
+		myTx3State:1
+		myTx4State:1
+		myTx5State:1
+		myTx6State:1
+		myTx7State:1
+		myTxFlags:2
+	endc
+
