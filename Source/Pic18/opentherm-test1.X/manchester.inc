@@ -254,11 +254,32 @@
 #define MASK_JUMP_8 b'00001110'
 
 ;jumptable StateTx1
-;a=1 BSR register, 0=access bank
-;d=0 wreg, d=1 register
-tx1Jump
-	movlw 	high(tx1Jump)  ; set pclath to start of jump table
-    movwf 	PCLATH,ACCESS
+tx1Jump:
+	;debug verify interrupt timing
+	bcf	PIR1,TMR2IF
+
+	movlw	PRESCALE_1MS
+	decfsz	myPrescale1msec,f,ACCESS
+	bra		timerDone	
+	movwf	myPrescale1msec
+	;here 1msec has passed
+	movlw	PRESCALE_125MS
+	decfsz	myPrescale125msec,f,ACCESS
+	bra		timerDone
+	movwf	myPrescale125msec		
+	;here 125msec has passed
+	movlw	PRESCALE_500MS
+	decfsz	myPrescale500msec,f,ACCESS
+	bra		timerDone
+	movwf	myPrescale500msec		
+	;here 500msec has passed
+	movlw	h'1'
+	xorwf	LATB
+timerDone:
+	;end debug
+
+	movlw 	high(tx1Jump) 	; replace by version that modifies return address on the stack
+  	movwf 	PCLATH,ACCESS	; so pclath does not need to be saved on interrupt
 	rlcf	myTx0State,w,ACCESS
 	andlw	MASK_JUMP_8
 	addwf	PCL,f,ACCESS
@@ -270,9 +291,10 @@ tx1Jump
 	bra		tx0State5
 	bra		tx0State6
 	bra		tx0State7
-;#if high(tx1Jump) != high($) ;MPLAB X: "Operand contains unresolvable labels or is too complex", works in MPLAB
+tx1JumpEnd:
+;if high(tx1Jump) != high(tx1JumpEnd) ;MPLAB X: "Operand contains unresolvable labels or is too complex", works in MPLAB
 ;	error "Jumptable crosses boundery"
-;#endif
+;endif
 tx0State0:
 	incf 	myTx0State,f,ACCESS
 	bra tx0Done
@@ -294,5 +316,4 @@ tx0State7:
 	clrf 	myTx0State,ACCESS
 	bra tx0Done
 tx0Done:
-	
 	return

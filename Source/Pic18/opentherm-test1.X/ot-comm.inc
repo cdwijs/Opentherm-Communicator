@@ -1,5 +1,5 @@
 ;*******************************************************************************
-;    ot-comm.inc                                                            *
+;    ot-comm.inc                                                               *
 ;    Copyright 2013 Cedric de Wijs.                                            *
 ;                                                                              *
 ;    This file is part of Opentherm Communicator                               *

@@ -30,23 +30,29 @@
 ;    OpenTherm,OpenTherm/Plus,OpenTherm/Lite and the OpenTherm logo are        *
 ;    registered trademarks of The OpenTherm Association.                       *
 ;*******************************************************************************
-
-#ifdef  __18F43K22
-	#include P18F43K22.INC
-#endif
+#include config.inc
 #include variables.inc
 
 resetvect: 	org 0x0000		
 	goto	myreset
 
-myreset: org 0x01ae		;prepare for bootloader
+intHi:		org 0x0008
+	goto	interruptHigh
+
+intLo:		org 0x0018
+	goto	interruptLow
+
+myreset: org 0x01fe		;prepare for bootloader
+	call	ioInit
+	call	timingInit
+	call	interruptInit
 mainloop:
-	call	tx1Jump
+	clrwdt
 	goto	mainloop
 
-
-   
-
+#include timing.inc
+#include interrupt.inc   
+#include io.inc
 #include manchester.inc
 #include ot-comm.inc
 

@@ -1,5 +1,5 @@
 ;*******************************************************************************
-;    variables.inc                                                             *
+;    interrupt.inc                                                             *
 ;    Copyright 2013 Cedric de Wijs.                                            *
 ;                                                                              *
 ;    This file is part of Opentherm Communicator                               *
@@ -30,22 +30,17 @@
 ;    OpenTherm,OpenTherm/Plus,OpenTherm/Lite and the OpenTherm logo are        *
 ;    registered trademarks of The OpenTherm Association.                       *
 ;*******************************************************************************
-#define bitTx0
+interruptInit:
+	bsf	RCON,IPEN	;1 = Enable priority levels on interrupts
+	bsf	IPR1,TMR2IP	;1 = High priority
+	bsf	PIE1,TMR2IE	;1 = Enables the TMR2 to PR2 match interrupt 
+	bsf	INTCON,GIEH	;1 = Enables all high priority interrupts
+	return
 
-#define RAMSTART_ACCESS	0x00
-	cblock	RAMSTART_ACCESS	
-		;manchester transmitters
-		myTx0State:1
-		myTx1State:1
-		myTx2State:1
-		myTx3State:1
-		myTx4State:1
-		myTx5State:1
-		myTx6State:1
-		myTx7State:1
-		;timing
-		myPrescale1msec:1
-		myPrescale125msec:1
-		myPrescale500msec:1
-	endc
-
+interruptHigh:
+	btfsc	PIR1,TMR2IF	;1 = TMR2 to PR2 match occurred (must be cleared by software) 
+	call	tx1Jump		;replace by goto construction, to free up 1 stacklevel
+	retfie	FAST		;auto-restore Wreg, Status and BSR registers
+	
+interruptLow:
+	retfie			;no autorestore
