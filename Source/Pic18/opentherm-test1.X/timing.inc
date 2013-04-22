@@ -83,4 +83,10 @@ timingInit:
 	movwf	T2CON
 	movlw	TMR2_INTERVAL
 	movwf	PR2
+	movlw	PRESCALE_1MS
+	movwf	myPrescale1msec
+	movlw	PRESCALE_125MS
+	movwf	myPrescale125msec		
+	movlw	PRESCALE_500MS
+	movwf	myPrescale500msec		
 	return

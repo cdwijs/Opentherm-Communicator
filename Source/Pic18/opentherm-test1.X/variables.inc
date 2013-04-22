@@ -49,3 +49,14 @@
 		myPrescale500msec:1
 	endc
 
+variablesInit:
+	clrf	myTx0State,ACCESS	;replace by routine that clears the entire RAM		
+	clrf	myTx1State,ACCESS	;via FSR / INDF
+	clrf	myTx2State,ACCESS
+	clrf	myTx3State,ACCESS
+	clrf	myTx4State,ACCESS
+	clrf	myTx5State,ACCESS
+	clrf	myTx6State,ACCESS
+	clrf	myTx7State,ACCESS
+	return
+

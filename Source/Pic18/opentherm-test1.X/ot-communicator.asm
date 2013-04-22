@@ -31,7 +31,7 @@
 ;    registered trademarks of The OpenTherm Association.                       *
 ;*******************************************************************************
 #include config.inc
-#include variables.inc
+
 
 resetvect: 	org 0x0000		
 	goto	myreset
@@ -43,6 +43,7 @@ intLo:		org 0x0018
 	goto	interruptLow
 
 myreset: org 0x01fe		;prepare for bootloader
+	call	variablesInit
 	call	ioInit
 	call	timingInit
 	call	interruptInit
@@ -50,6 +51,7 @@ mainloop:
 	clrwdt
 	goto	mainloop
 
+#include variables.inc
 #include timing.inc
 #include interrupt.inc   
 #include io.inc
