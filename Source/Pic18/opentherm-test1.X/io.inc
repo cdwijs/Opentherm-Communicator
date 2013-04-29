@@ -54,15 +54,15 @@
 #define INIT_PORTB	b'11111111'
 ;PORTC			Tris	Port
 ;7	RS232-RX	1		0
-;6	RS232-TX	1		0
+;6	RS232-TX	0		0;ds: tris must be 1
 ;5	-			1		0
 ;4	-			1		0
 ;3	-			1		0
 ;2	-			1		0
 ;1	-			1		0
 ;0	-			1		0
-#define INIT_TRISC	b'11111111'
-#define INIT_PORTC	b'00000000'
+#define INIT_TRISC	b'10111111'
+#define INIT_PORTC	b'01000000'
 ;PORTD			Tris	Port
 ;7	-			1		0
 ;6	-			1		0
@@ -85,23 +85,35 @@
 ;0	-			1		0
 #define INIT_TRISE	b'11111111'
 #define INIT_PORTE	b'00000000'
-#define pinInRx0	LATA.PORTA0
-#define pinInRx1	LATA.PORTA1
-#define pinInRx2	LATA.PORTA2
-#define pinInRx3	LATA.PORTA3
-#define pinInRx4	LATA.PORTA4
-#define pinInRx5	LATA.PORTA5
-#define pinInRx6	LATA.PORTA6
-#define pinInRx7	LATA.PORTA7
 
-#define pinOutTx0	LATB.LATB0
-#define pinOutTx1	LATB.LATB1
-#define pinOutTx2	LATB.LATB2
-#define pinOutTx3	LATB.LATB3
-#define pinOutTx4	LATB.LATB4
-#define pinOutTx5	LATB.LATB5
-#define pinOutTx6	LATB.LATB6	;shared with PGC
-#define pinOutTx7	LATB.LATB7	;shared with PGD
+;define INPUT_ACTIVE_HIGH
+;define OUTPUT_ACTIVE_HIGH
+
+#define pinInRx0	myPortaNow,RA0
+#define edgeRx0		myPortaEdge,RA0
+#define pinInRx1	myPortaNow,RA1
+#define edgeRx1		myPortaEdge,RA1
+#define pinInRx2	myPortaNow,RA2
+#define edgeRx2		myPortaEdge,RA2
+#define pinInRx3	myPortaNow,RA3
+#define edgeRx3		myPortaEdge,RA3
+#define pinInRx4	myPortaNow,RA4
+#define edgeRx4		myPortaEdge,RA4
+#define pinInRx5	myPortaNow,RA5
+#define edgeRx5		myPortaEdge,RA5
+#define pinInRx6	myPortaNow,RA6
+#define edgeRx6		myPortaEdge,RA6
+#define pinInRx7	myPortaNow,RA7
+#define edgeRx7		myPortaEdge,RA7
+
+#define pinOutTx0	LATB,LATB0
+#define pinOutTx1	LATB,LATB1
+#define pinOutTx2	LATB,LATB2
+#define pinOutTx3	LATB,LATB3
+#define pinOutTx4	LATB,LATB4
+#define pinOutTx5	LATB,LATB5
+#define pinOutTx6	LATB,LATB6	;shared with PGC
+#define pinOutTx7	LATB,LATB7	;shared with PGD
 
 ioInit:
 	movlw	INIT_PORTA

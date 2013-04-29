@@ -39,7 +39,7 @@ interruptInit:
 
 interruptHigh:
 	btfsc	PIR1,TMR2IF	;1 = TMR2 to PR2 match occurred (must be cleared by software) 
-	call	tx1Jump		;replace by goto construction, to free up 1 stacklevel
+	call	int100usec		;replace by goto construction, to free up 1 stacklevel
 	retfie	FAST		;auto-restore Wreg, Status and BSR registers
 	
 interruptLow:

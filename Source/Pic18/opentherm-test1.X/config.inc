@@ -30,6 +30,8 @@
 ;    OpenTherm,OpenTherm/Plus,OpenTherm/Lite and the OpenTherm logo are        *
 ;    registered trademarks of The OpenTherm Association.                       *
 ;*******************************************************************************
+#define Carry	STATUS,C
+
 
 #ifdef  __18F23K22
 	#include P18F23K22.INC

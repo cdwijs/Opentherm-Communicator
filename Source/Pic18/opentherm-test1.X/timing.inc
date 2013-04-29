@@ -41,6 +41,7 @@
 #define PRESCALE_1MS	d'10' 
 #define PRESCALE_125MS	d'125'
 #define PRESCALE_500MS	d'4'
+#define PRESCALE_500US	d'5'
 
 ;OSCCON
 ;7	IDLEN	0	0=Device enters Sleep mode on SLEEP instruction
@@ -88,5 +89,9 @@ timingInit:
 	movlw	PRESCALE_125MS
 	movwf	myPrescale125msec		
 	movlw	PRESCALE_500MS
-	movwf	myPrescale500msec		
+	movwf	myPrescale500msec
+
+	movlw	PRESCALE_500US
+	movwf	myPrescale500usec
+		
 	return
