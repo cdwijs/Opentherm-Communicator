@@ -49,12 +49,13 @@ myreset: org 0x01fe		;prepare for bootloader
 	call	interruptInit
 mainloop:
 	clrwdt
+	call	commJumps
 	goto	mainloop
 
+#include io.inc
 #include variables.inc
 #include timing.inc
 #include interrupt.inc   
-#include io.inc
 #include manchester.inc
 #include ot-comm.inc
 

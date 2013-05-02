@@ -1,5 +1,5 @@
 ;*******************************************************************************
-;    variables.inc                                                             *
+;    ot-comm-re-use.inc                                                               *
 ;    Copyright 2013 Cedric de Wijs.                                            *
 ;                                                                              *
 ;    This file is part of Opentherm Communicator                               *
@@ -30,117 +30,92 @@
 ;    OpenTherm,OpenTherm/Plus,OpenTherm/Lite and the OpenTherm logo are        *
 ;    registered trademarks of The OpenTherm Association.                       *
 ;*******************************************************************************
-#define RAMSTART_ACCESS	0x00
-	cblock	RAMSTART_ACCESS
-		myPrescale1msec:1		;timing
-		myPrescale125msec:1
-		myPrescale500msec:1
-		myPrescale500usec:1
-	endc	
-	#ifdef INPUTS_ON_PORTA
-		cblock
-		myPortaEdge:1			;edge detector
-		myPortaNow:1		
-		myPortaPrevious:1
-		endc
-	#endif
-	#ifdef INPUTS_ON_PORTB
-		cblock
-		myPortbEdge:1			;edge detector
-		myPortbNow:1
-		myPortbPrevious:1
-		endc		
-	#endif
-	#ifdef INPUTS_ON_PORTC
-		cblock
-		myPortcNow:1			;edge detector
-		myPortcEdge:1
-		myPortcPrevious:1
-		endc
-	#endif
-	#ifdef INPUTS_ON_PORTD
-		cblock
-		myPortdEdge:1			;edge detector
-		myPortdNow:1
-		myPortdPrevious:1
-		endc
-	#endif
-	#ifdef INPUTS_ON_PORTE
-		cblock
-		myPorteEdge:1			;edge detector
-		myPorteNow:1
-		myPortePrevious:1
-		endc
-	#endif
+#define commStateIdle			commState0
+#define COMM_STATE_IDLE			d'0'
+#define commStateStartA			commState1
+#define commStateStartB			commState2
+#define commStateWaitAnswer		commState3
+#define commStateTimeout		commState4
+#define commStateAborted		commState5
+#define commStateReportMsg		commState6
+#define commStateUnused7		commState7
+	movf	myCommState,w,ACCESS
+	call	Switchcase8
+	bra		commState0
+	bra		commState1
+	bra		commState2
+	bra		commState3
+	bra		commState4
+	bra		commState5
+	bra		commState6
+	bra		commState7
+
+commStateIdle:
+	bcf		bitCommBusy
+	btfss	bitCommStartMsg
+	bra		commDone
+	bra		commNextState
+
+
+commStateStartA:
+	bsf		bitCommBusy
+	bsf		bitRxStart
+	bsf		bitTxStart
+	btfss	bitRxBusy
+	bra		commDone
+	bra		commNextState
+		
+commStateStartB:
+	bcf		bitRxStart
+	btfsc	bitTxBusy
+	bra		commDone
+	bra		commNextState
+		
+commStateWaitAnswer:
+	btfss	bitRxBusy
+	bra		commNextState
+
+	movf	myCommTimer,f,ACCESS	
+	bnz		commDone
+;	movlw	
 	
-	#ifdef USE_CHANNEL_0
-		#define bitTx0Start 		my0Flags,0
-		#define bitTx0Busy			my0Flags,1
-		#define bitRx0Start			my0Flags,2
-		#define bitRx0Busy			my0Flags,3
-		#define bitComm0StartMsg	my0Flags,4
-		#define bitComm0Busy		my0Flags,5
-		cblock
-			my0Flags:1
-			myTx0State:1
-			myTx0Counter:1
-			myTx0Buffer:4
-			myRx0State:1
-			myRx0Counter:1
-			myRx0Buffer:4
-			myComm0State:1
-			myComm0Timer:1
-		endc
-	#endif
-	#ifdef USE_CHANNEL_1
-		#define bitTx1Start 		my1Flags,0
-		#define bitTx1Busy			my1Flags,1
-		#define bitRx1Start			my1Flags,2
-		#define bitRx1Busy			my1Flags,3
-		#define bitComm1StartMsg	my1Flags,4
-		#define bitComm1Busy		my1Flags,5
-		cblock
-			my1Flags:1
-			myTx1State:1
-			myTx1Counter:1
-			myTx1Buffer:4
-			myRx1State:1
-			myRx1Counter:1
-			myRx1Buffer:4
-			myComm1State:1
-			myComm1Timer:1
-		endc
-	#endif
-	#ifdef USE_CHANNEL_2
-		#define bitTx2Start 		my2Flags,0
-		#define bitTx2Busy			my2Flags,1
-		#define bitRx2Start			my2Flags,2
-		#define bitRx2Busy			my2Flags,3
-		#define bitComm2StartMsg	my2Flags,4
-		#define bitComm2Busy		my2Flags,5
-		cblock
-			my2Flags:1
-			myTx2State:1
-			myTx2Counter:1
-			myTx2Buffer:4
-			myRx2State:1
-			myRx2Counter:1
-			myRx2Buffer:4
-			myComm2State:1
-			myComm2Timer:1
-		endc
-	#endif
+commStateTimeout:		
+commStateAborted:		
+commStateReportMsg:		
+commStateUnused7:
+	bra		commDone
 
+commNextState:
+	incf	myCommState,f,ACCESS
+commDone:
 
-
-
-
-#define RAMSTART_BANK0 h'0000'
-variablesInit:
-	lfsr	FSR0, RAMSTART_BANK0
-varLoop:
-	clrf	POSTINC0
-	btfss	FSR0H,1		;stop at the begin of bank2 (0x0200)
-	bra		varLoop		;writes to uminplemented locations are ignored
-	return
-
+;labels
+#undefine commStateIdle
+#undefine COMM_STATE_IDLE
+#undefine commStateStartA
+#undefine commStateStartB	
+#undefine commStateWaitAnswer
+#undefine commStateTimeout
+#undefine commStateAborted
+#undefine commStateReportMsg
+#undefine commStateUnused7
+#undefine commState0			
+#undefine commState1			
+#undefine commState2			
+#undefine commState3			
+#undefine commState4			
+#undefine commState5			
+#undefine commState6			
+#undefine commState7
+#undefine commNextState		
+#undefine commDone			
+;data
+#undefine myCommState			
+#undefine myCommTimer			
+;bits
+#undefine bitCommBusy			
+#undefine bitCommStartMsg		
+#undefine bitRxStart			
+#undefine bitRxBusy			
+#undefine bitTxStart			
+#undefine bitTxBusy			

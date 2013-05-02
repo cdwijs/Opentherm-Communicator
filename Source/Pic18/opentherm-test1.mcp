@@ -32,6 +32,7 @@ file_004=.
 file_005=.
 file_006=.
 file_007=.
+file_008=.
 [GENERATED_FILES]
 file_000=no
 file_001=no
@@ -41,6 +42,7 @@ file_004=no
 file_005=no
 file_006=no
 file_007=no
+file_008=no
 [OTHER_FILES]
 file_000=no
 file_001=no
@@ -50,6 +52,7 @@ file_004=no
 file_005=no
 file_006=no
 file_007=no
+file_008=no
 [FILE_INFO]
 file_000=opentherm-test1.X\ot-communicator.asm
 file_001=opentherm-test1.X\manchester.inc
@@ -59,6 +62,7 @@ file_004=opentherm-test1.X\P18F43K22.INC
 file_005=opentherm-test1.X\config.inc
 file_006=opentherm-test1.X\io.inc
 file_007=opentherm-test1.X\timing.inc
+file_008=opentherm-test1.X\ot-comm-common.inc
 [SUITE_INFO]
 suite_guid={6B3DAA78-59C1-46DD-B6AA-DBDAE4E06484}
 suite_state=generate-absolute-code

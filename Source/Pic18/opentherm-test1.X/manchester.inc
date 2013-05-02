@@ -45,14 +45,14 @@
 ;    |     <--- transition from high to low
 ;    |___
 ;
-;For example, the sequence of bits 11010011010 is represented as:
-;           ___     ______        ______     ___        ___     ______        ______
-;          |   |   |      |      |      |   |   |      |   |   |      |      |      |
-;__________|   |___|      |______|      |___|   |______|   |___|      |______|      |___
+;For example, the sequence of bits 110100110 is represented as:
+;           ___     ______        ______     ___        ___     ______       
+;          |   |   |      |      |      |   |   |      |   |   |      |    
+;__________|   |___|      |______|      |___|   |______|   |___|      |____
 ;
-;       |      |       |      |      |      |      |       |       |      |      |      |
-;       |      |       |      |      |      |      |       |       |      |      |      |
-;          1      1      0       1       0     0       1       1       0      1      0
+;       |      |       |      |      |      |      |       |       |      |
+;       |      |       |      |      |      |      |       |       |      |
+;          1      1      0       1       0     0       1       1       0   
 ;Idle    Start   D0      D1      D2      D3    D4
 
 ;The bitstream is sampled every 100uSec.
@@ -291,42 +291,46 @@ Switchcase16:
 int100usec:
 	bcf	PIR1,TMR2IF
 	;sample input, edge detect
-	;create #ifdef construction for unused ports
 #define DEBUG_LOOPBACK_TEST
-#ifdef DEBUG_LOOPBACK_TEST
-	movff	LATB,myPortaNow
-#else
-	movff	PORTA,myPortaNow
-#endif
+#ifdef INPUTS_ON_PORTA
+	#ifdef DEBUG_LOOPBACK_TEST
+		movff	LATB,myPortaNow
+	#else
+		movff	PORTA,myPortaNow
+	#endif
 	movf	myPortaNow,w,ACCESS
 	xorwf	myPortaPrevious,w,ACCESS
 	movwf	myPortaEdge
 	movff	myPortaNow,myPortaPrevious
-
+#endif
+#ifdef INPUTS_ON_PORTB
 	movff	PORTB,myPortbNow
 	movf	myPortbNow,w,ACCESS
 	xorwf	myPortbPrevious,w,ACCESS
 	movwf	myPortbEdge
 	movff	myPortbNow,myPortbPrevious
-
+#endif
+#ifdef INPUTS_ON_PORTC
 	movff	PORTC,myPortcNow
 	movf	myPortcNow,w,ACCESS
 	xorwf	myPortcPrevious,w,ACCESS
 	movwf	myPortcEdge
 	movff	myPortcNow,myPortcPrevious
-
+#endif
+#ifdef INPUTS_ON_PORTD
 	movff	PORTD,myPortdNow
 	movf	myPortdNow,w,ACCESS
 	xorwf	myPortdPrevious,w,ACCESS
 	movwf	myPortdEdge
 	movff	myPortdNow,myPortdPrevious
-
+#endif
+#ifdef INPUTS_ON_PORTE
 	movff	PORTE,myPorteNow
 	movf	myPorteNow,w,ACCESS
 	xorwf	myPortePrevious,w,ACCESS
 	movwf	myPorteEdge
 	movff	myPorteNow,myPortePrevious
-
+#endif
 	;debug verify interrupt timing
 	btfsc	bitTx0Busy
 	bcf		bitTx0Start
@@ -352,263 +356,179 @@ timerDone:
 	;end debug
 
 tx1Jump:
+
+	
+
 	decfsz	myPrescale500usec,f,ACCESS
 	bra		tx0Done
 	movlw	PRESCALE_500US
 	movwf	myPrescale500usec
 
-#define tx0StateIdle		tx0State0
-#define TX_STATE_IDLE		d'0'
-#define tx0StateSendStartA	tx0State1
-#define tx0StateSendStartB	tx0State2
-#define tx0StateSendBitA	tx0State3
-#define TX_STATE_SENDBIT_A	d'3'
-#define tx0StateSendBitB	tx0State4
-#define tx0StateSendStopA	tx0State5
-#define tx0StateSendStopB	tx0State6
-#define tx0StateUnused7		tx0State7		
-	
-	movf	myTx0State,w,ACCESS
-	call	Switchcase8
-	bra		tx0State0
-	bra		tx0State1
-	bra		tx0State2
-	bra		tx0State3
-	bra		tx0State4
-	bra		tx0State5
-	bra		tx0State6
-	bra		tx0State7
-
-tx0StateIdle:
-	bcf		bitTx0Busy
-	;debug
-	movlw	h'EF'
-	movwf	myTx0Buffer+0
-	movlw	h'BE'
-	movwf	myTx0Buffer+1
-	movlw	h'AD'
-	movwf	myTx0Buffer+2
-	movlw	h'DE'
-	movwf	myTx0Buffer+3
-	;end debug
-
-	btfss	bitTx0Start
-	bra		tx0Done
-	bra		tx0NextState
-
-tx0StateSendStartA:
-#ifdef OUTPUT_ACTIVE_HIGH
-	bcf		pinOutTx0
-#else
-	bsf		pinOutTx0
+#ifdef USE_CHANNEL_0
+	;labels
+	#define txState0		tx0State0	;transmit
+	#define txState1		tx0State1
+	#define txState2		tx0State2
+	#define txState3		tx0State3
+	#define txState4		tx0State4
+	#define txState5		tx0State5
+	#define txState6		tx0State6
+	#define txState7		tx0State7
+	#define txNextState		tx0NextState
+	#define txDone			tx0Done
+	;data
+	#define myTxState		myTx0State
+	#define myTxBuffer		myTx0Buffer
+	#define myTxCounter		myTx0Counter
+	;bits
+	#define bitTxBusy		bitTx0Busy
+	#define bitTxStart		bitTx0Start
+	#define pinOutTx		pinOutTx0
+	;labels
+	#define rxState0			rx0State0	;receive
+	#define rxState1			rx0State1
+	#define rxState2			rx0State2
+	#define rxState3			rx0State3
+	#define rxState4			rx0State4
+	#define rxState5			rx0State5
+	#define rxState6			rx0State6
+	#define rxState7			rx0State7
+	#define rxState8			rx0State8
+	#define rxState9			rx0State9
+	#define rxState10			rx0State10
+	#define rxState11			rx0State11
+	#define rxState12			rx0State12
+	#define rxState13			rx0State13
+	#define rxState14			rx0State14
+	#define rxState15			rx0State15
+	#define rxStoreBit			rx0StoreBit
+	#define rxErrorLateEdge		rx0ErrorLateEdge
+	#define rxErrorFastEdge		rx0ErrorFastEdge
+	#define rxSetIdleState		rx0SetIdleState
+	#define rxNextState			rx0NextState
+	#define rxDone				rx0Done
+	;data
+	#define myRxState			myRx0State
+	#define myRxCounter			myRx0Counter
+	#define myRxBuffer			myRx0Buffer
+	;bits
+	#define bitRxBusy			bitRx0Busy
+	#define bitRxStart			bitRx0Start
+	#define pinInRx				pinInRx0
+	#define edgeRx				edgeRx0
+	#include manchester-common.inc
 #endif
-	movlw	NUM_TX_BITS
-	movwf	myTx0Counter,ACCESS
-	bsf		bitTx0Busy
-	bra		tx0NextState
 
-tx0StateSendStartB:
-#ifdef OUTPUT_ACTIVE_HIGH
-	bsf		pinOutTx0	
-#else
-	bcf		pinOutTx0
+#ifdef USE_CHANNEL_1
+	;labels
+	#define txState0		tx1State0
+	#define txState1		tx1State1
+	#define txState2		tx1State2
+	#define txState3		tx1State3
+	#define txState4		tx1State4
+	#define txState5		tx1State5
+	#define txState6		tx1State6
+	#define txState7		tx1State7
+	#define txNextState		tx1NextState
+	#define txDone			tx1Done
+	;data
+	#define myTxState		myTx1State
+	#define myTxBuffer		myTx1Buffer
+	#define myTxCounter		myTx1Counter
+	;bits
+	#define bitTxBusy		bitTx1Busy
+	#define bitTxStart		bitTx1Start
+	#define pinOutTx		pinOutTx1
+	;labels
+	#define rxState0			rx1State0	;receive
+	#define rxState1			rx1State1
+	#define rxState2			rx1State2
+	#define rxState3			rx1State3
+	#define rxState4			rx1State4
+	#define rxState5			rx1State5
+	#define rxState6			rx1State6
+	#define rxState7			rx1State7
+	#define rxState8			rx1State8
+	#define rxState9			rx1State9
+	#define rxState10			rx1State10
+	#define rxState11			rx1State11
+	#define rxState12			rx1State12
+	#define rxState13			rx1State13
+	#define rxState14			rx1State14
+	#define rxState15			rx1State15
+	#define rxStoreBit			rx1StoreBit
+	#define rxErrorLateEdge		rx1ErrorLateEdge
+	#define rxErrorFastEdge		rx1ErrorFastEdge
+	#define rxSetIdleState		rx1SetIdleState
+	#define rxNextState			rx1NextState
+	#define rxDone				rx1Done
+	;data
+	#define myRxState			myRx1State
+	#define myRxCounter			myRx1Counter
+	#define myRxBuffer			myRx1Buffer
+	;bits
+	#define bitRxBusy			bitRx1Busy
+	#define bitRxStart			bitRx1Start
+	#define pinInRx				pinInRx1
+	#define edgeRx				edgeRx1
+	#include manchester-common.inc
 #endif
-	bra		tx0NextState
 
-tx0StateSendBitA
-#ifdef OUTPUT_ACTIVE_HIGH
-	btfss	myTx0Buffer+3,7
-	bsf		pinOutTx0	;invert highest bit to output pin
-	btfsc	myTx0Buffer+0,0
-	bcf		pinOutTx0
-#else
-	btfss	myTx0Buffer+3,7
-	bcf		pinOutTx0
-	btfsc	myTx0Buffer+3,7
-	bsf		pinOutTx0
+#ifdef USE_CHANNEL_2
+	;labels
+	#define txState0		tx2State0
+	#define txState1		tx2State1
+	#define txState2		tx2State2
+	#define txState3		tx2State3
+	#define txState4		tx2State4
+	#define txState5		tx2State5
+	#define txState6		tx2State6
+	#define txState7		tx2State7
+	#define txNextState		tx2NextState
+	#define txDone			tx2Done
+	;data
+	#define myTxState		myTx2State
+	#define myTxBuffer		myTx2Buffer
+	#define myTxCounter		myTx2Counter
+	;bits
+	#define bitTxBusy		bitTx2Busy
+	#define bitTxStart		bitTx2Start
+	#define pinOutTx		pinOutTx2
+	;labels
+	#define rxState0			rx2State0	;receive
+	#define rxState1			rx2State1
+	#define rxState2			rx2State2
+	#define rxState3			rx2State3
+	#define rxState4			rx2State4
+	#define rxState5			rx2State5
+	#define rxState6			rx2State6
+	#define rxState7			rx2State7
+	#define rxState8			rx2State8
+	#define rxState9			rx2State9
+	#define rxState10			rx2State10
+	#define rxState11			rx2State11
+	#define rxState12			rx2State12
+	#define rxState13			rx2State13
+	#define rxState14			rx2State14
+	#define rxState15			rx2State15
+	#define rxStoreBit			rx2StoreBit
+	#define rxErrorLateEdge		rx2ErrorLateEdge
+	#define rxErrorFastEdge		rx2ErrorFastEdge
+	#define rxSetIdleState		rx2SetIdleState
+	#define rxNextState			rx2NextState
+	#define rxDone				rx2Done
+	;data
+	#define myRxState			myRx2State
+	#define myRxCounter			myRx2Counter
+	#define myRxBuffer			myRx2Buffer
+	;bits
+	#define bitRxBusy			bitRx2Busy
+	#define bitRxStart			bitRx2Start
+	#define pinInRx				pinInRx2
+	#define edgeRx				edgeRx2
+	#include manchester-common.inc
 #endif
-	bra		tx0NextState
-
-tx0StateSendBitB
-#ifdef OUTPUT_ACTIVE_HIGH
-	btfss	myTx0Buffer+3,7
-	bcf		pinOutTx0	;copy highest bit to output pin
-	btfsc	myTx0Buffer+3,7
-	bsf		pinOutTx0
-#else
-	btfss	myTx0Buffer+3,7
-	bsf		pinOutTx0
-	btfsc	myTx0Buffer+3,7
-	bcf		pinOutTx0	
-#endif
-	dcfsnz	myTx0Counter,f,ACCESS
-	bra		tx0NextState
-
-	bcf		Carry
-	rlcf	myTx0Buffer+0,f,ACCESS
-	rlcf	myTx0Buffer+1,f,ACCESS
-	rlcf	myTx0Buffer+2,f,ACCESS
-	rlcf	myTx0Buffer+3,f,ACCESS 
-	movlw	TX_STATE_SENDBIT_A
-	movwf	myTx0State,ACCESS
-	bra		tx0Done
-
-tx0StateSendStopA:
-#ifdef OUTPUT_ACTIVE_HIGH
-	bsf		pinOutTx0
-#else
-	bcf		pinOutTx0	
-#endif
-	bra		tx0NextState
-
-tx0StateSendStopB:
-#ifdef OUTPUT_ACTIVE_HIGH
-	bcf		pinOutTx0
-#else
-	bsf		pinOutTx0
-#endif
-	movlw	TX_STATE_IDLE
-	movwf	myTx0State,ACCESS
-	bra		tx0Done
-
-tx0StateUnused7:
-	clrf 	myTx0State,ACCESS ;should never happen, set an error bit here?
-	bra tx0Done
-
-tx0NextState:
-	incf	myTx0State,f,ACCESS
-tx0Done:
-	;return
 
 
 
-#define rx0StateIdle		rx0State0
-#define RX_STATE_IDLE		d'0'
-#define rx0StateWaitStart	rx0State1
-#define rx0StateSample0		rx0State2
-#define rx0StateSample1		rx0State3
-#define RX_SAMPLE_1			d'3'
-#define rx0StateSample2		rx0State4
-#define rx0StateSample3		rx0State5
-#define rx0StateSample4		rx0State6
-#define rx0StateSample5		rx0State7
-#define rx0StateSample6		rx0State8
-#define rx0StateSample7		rx0State9
-#define rx0StateSample8		rx0State10
-#define rx0StateSample9		rx0State11
-#define rx0StateSample10	rx0State12
-#define rx0StateSample11	rx0State13
-#define rx0StateSample12	rx0State14
-#define rx0StateUnused15	rx0State15	
-	
-	movf	myRx0State,w,ACCESS
-	call	Switchcase16
-	bra		rx0State0
-	bra		rx0State1
-	bra		rx0State2
-	bra		rx0State3
-	bra		rx0State4
-	bra		rx0State5
-	bra		rx0State6
-	bra		rx0State7
-	bra		rx0State8
-	bra		rx0State9
-	bra		rx0State10
-	bra		rx0State11
-	bra		rx0State12
-	bra		rx0State13
-	bra		rx0State14
-	bra		rx0State15
-
-rx0StateIdle:
-	bcf		bitRx0Busy
-	btfss	bitRx0Start
-	bra		rx0Done
-	bra		rx0NextState	
-
-rx0StateWaitStart:
-	bsf		bitRx0Busy
-#ifdef INPUT_ACTIVE_HIGH
-	btfss	pinInRx0
-#else
-	btfsc	pinInRx0	
-#endif
-	bra		rx0Done
-	movlw	NUM_RX_BITS+1 ;first bit is startbit
-	movwf	myRx0Counter,ACCESS
-
-
-	bra		rx0NextState
-
-rx0StateSample0:
-rx0StateSample1:
-rx0StateSample2:	
-rx0StateSample3:
-	btfss	edgeRx0
-	bra		rx0NextState
-	bra		rx0ErrorFastEdge
-
-rx0StateSample4:
-rx0StateSample5:
-rx0StateSample6:
-rx0StateSample7:
-	bra		rx0NextState
-
-rx0StateSample8:
-rx0StateSample9:
-rx0StateSample10:
-rx0StateSample11:
-	btfss	edgeRx0
-	bra		rx0NextState
-	bra		rx0StoreBit
-
-rx0StateSample12:
-	btfss	edgeRx0
-	bra		rx0ErrorLateEdge
-	bra		rx0StoreBit
-
-rx0StateUnused15:
-	;set error bit here?	
-	bra		rx0SetIdleState
-
-
-rx0StoreBit
-	;opentherm sends and receives data MSB first
-	;store bit here
-	dcfsnz	myRx0Counter,f,ACCESS
-	bra		rx0SetIdleState
-
-	bcf		Carry
-#ifdef INPUT_ACTIVE_HIGH
-	btfsc	pinInRx0
-#else
-	btfss	pinInRx0
-#endif
-	bsf		Carry
-	rlcf	myRx0Buffer+0,f,ACCESS
-	rlcf	myRx0Buffer+1,f,ACCESS
-	rlcf	myRx0Buffer+2,f,ACCESS
-	rlcf	myRx0Buffer+3,f,ACCESS
-
-	;not all bits received
-	movlw	RX_SAMPLE_1
-	movwf	myRx0State,ACCESS
-	bra		rx0Done
-
-
-rx0ErrorLateEdge
-	;set error bit here
-	bra		rx0SetIdleState
-
-rx0ErrorFastEdge:
-	;set error bit here
-	;bra	rx0SetIdleState
-rx0SetIdleState:
-	movlw	RX_STATE_IDLE
-	movwf	myRx0State,ACCESS
-	bra		rx0Done
-
-rx0NextState:
-	incf	myRx0State,f,ACCESS
-rx0Done:
 	return

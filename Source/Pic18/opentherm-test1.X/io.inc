@@ -89,31 +89,61 @@
 ;define INPUT_ACTIVE_HIGH
 ;define OUTPUT_ACTIVE_HIGH
 
-#define pinInRx0	myPortaNow,RA0
-#define edgeRx0		myPortaEdge,RA0
-#define pinInRx1	myPortaNow,RA1
-#define edgeRx1		myPortaEdge,RA1
-#define pinInRx2	myPortaNow,RA2
-#define edgeRx2		myPortaEdge,RA2
-#define pinInRx3	myPortaNow,RA3
-#define edgeRx3		myPortaEdge,RA3
-#define pinInRx4	myPortaNow,RA4
-#define edgeRx4		myPortaEdge,RA4
-#define pinInRx5	myPortaNow,RA5
-#define edgeRx5		myPortaEdge,RA5
-#define pinInRx6	myPortaNow,RA6
-#define edgeRx6		myPortaEdge,RA6
-#define pinInRx7	myPortaNow,RA7
-#define edgeRx7		myPortaEdge,RA7
+#define USE_CHANNEL_0
+#define USE_CHANNEL_1
+#define USE_CHANNEL_2
+;define USE_CHANNEL_3
+;define USE_CHANNEL_4
+;define USE_CHANNEL_5
+;define USE_CHANNEL_6
+;define USE_CHANNEL_7
 
-#define pinOutTx0	LATB,LATB0
-#define pinOutTx1	LATB,LATB1
-#define pinOutTx2	LATB,LATB2
-#define pinOutTx3	LATB,LATB3
-#define pinOutTx4	LATB,LATB4
-#define pinOutTx5	LATB,LATB5
-#define pinOutTx6	LATB,LATB6	;shared with PGC
-#define pinOutTx7	LATB,LATB7	;shared with PGD
+#ifdef USE_CHANNEL_0
+	#define pinInRx0	myPortaNow,RA0
+	#define edgeRx0		myPortaEdge,RA0
+	#define pinOutTx0	LATB,LATB0
+#endif
+#ifdef USE_CHANNEL_1
+	#define pinInRx1	myPortaNow,RA1
+	#define edgeRx1		myPortaEdge,RA1
+	#define pinOutTx1	LATB,LATB1
+#endif
+#ifdef USE_CHANNEL_2
+	#define pinInRx2	myPortaNow,RA2
+	#define edgeRx2		myPortaEdge,RA2
+	#define pinOutTx2	LATB,LATB2
+#endif
+#ifdef USE_CHANNEL_3
+	#define pinInRx3	myPortaNow,RA3
+	#define edgeRx3		myPortaEdge,RA3
+	#define pinOutTx3	LATB,LATB3
+#endif
+#ifdef USE_CHANNEL_4
+	#define pinInRx4	myPortaNow,RA4
+	#define edgeRx4		myPortaEdge,RA4
+	#define pinOutTx4	LATB,LATB4
+#endif
+#ifdef USE_CHANNEL_5
+	#define pinInRx5	myPortaNow,RA5
+	#define edgeRx5		myPortaEdge,RA5
+	#define pinOutTx5	LATB,LATB5
+#endif
+#ifdef USE_CHANNEL_6
+	#define pinInRx6	myPortaNow,RA6
+	#define edgeRx6		myPortaEdge,RA6
+	#define pinOutTx6	LATB,LATB6	;shared with PGC
+#endif
+#ifdef USE_CHANNEL_7
+	#define pinInRx7	myPortaNow,RA7
+	#define edgeRx7		myPortaEdge,RA7
+	#define pinOutTx7	LATB,LATB7	;shared with PGD
+#endif
+
+#define INPUTS_ON_PORTA
+;define INPUTS_ON_PORTB
+;define INPUTS_ON_PORTC
+;define INPUTS_ON_PORTD
+;define INPUTS_ON_PORTE
 
 ioInit:
 	movlw	INIT_PORTA

@@ -37,33 +37,33 @@
 ;       |Idle         |
 ;       |-------------|
 ;       |             |
-; +---->|BitMsgBusy=0 |
+; +---->|BitCommBusy=0 |
 ; |     +------+------+
 ; |            |BitStartMsg
 ; |     +------v------+
-; |     |             |
+; |     |StartA       |
 ; |     |-------------|
+; |     |BitCommBusy=1|
 ; |     |BitTxStart=1 |
 ; |     |BitRxStart=1 |
-; |     |BitMsgBusy=1 |
 ; |     +------+------+
 ; |            |BitRxBusy
 ; |     +------v------+
-; |     |             |
+; |     |StartB       |
 ; |     |-------------|
 ; |     |BitRxStart=0 |
 ; |     |             +
 ; |     +------+------+
 ; |            |!BitTxBusy
-; |     +------v------+     +---------------+
-; |     |             |     |Timeout        |
-; |     |-------------|     |---------------|
-; |     |BitTxStart=0 |1 sec| BitRxAbort=1  |
-; |     |             |----->               |
-; |     +------+------+     +-------+-------+
-; |            |!BitRxBusy          |!BitRxBusy
-; |     +------v------+      +------v--------+
-; |     |CheckMsg     |      |               |
+; |     +------v------+      +---------------+
+; |     | Wait Answer |      |Timeout        |
+; |     |-------------|      |---------------|
+; |     |BitTxStart=0 |1 sec | BitRxAbort=1  |
+; |     |             |------>               |
+; |     +------+------+      +-------+-------+
+; |            |!BitRxBusy           |!BitRxBusy
+; |     +------v------+      +-------v-------+
+; |     |CheckMsg     |      |Aborted        |
 ; |     |-------------|      |---------------|
 ; |     |             |      | BitRxAbort=0  |
 ; |     |             |      |               |
@@ -77,3 +77,105 @@
 ; |     +------+------+
 ; |            |
 ; +<-----------+ 
+commJumps:
+#ifdef USE_CHANNEL_0
+	;labels
+	#define commState0			comm0State0
+	#define commState1			comm0State1
+	#define commState2			comm0State2
+	#define commState3			comm0State3
+	#define commState4			comm0State4
+	#define commState5			comm0State5
+	#define commState6			comm0State6
+	#define commState7			comm0State7
+	#define commNextState		comm0NextState
+	#define commDone			comm0Done
+	;data
+	#define myCommState			myComm0State
+	#define myCommTimer			myComm0Timer
+	;bits
+	#define bitCommBusy			bitComm0Busy
+	#define bitCommStartMsg		bitComm0StartMsg
+	#define bitRxStart			bitRx0Start
+	#define bitRxBusy			bitRx0Busy
+	#define bitTxStart			bitTx0Start
+	#define bitTxBusy			bitTx0Busy
+	#include ot-comm-common.inc
+#endif
+
+#ifdef USE_CHANNEL_1
+	;labels
+	#define commState0			comm1State0
+	#define commState1			comm1State1
+	#define commState2			comm1State2
+	#define commState3			comm1State3
+	#define commState4			comm1State4
+	#define commState5			comm1State5
+	#define commState6			comm1State6
+	#define commState7			comm1State7
+	#define commNextState		comm1NextState
+	#define commDone			comm1Done
+	;data
+	#define myCommState			myComm1State
+	#define myCommTimer			myComm1Timer
+	;bits
+	#define bitCommBusy			bitComm1Busy
+	#define bitCommStartMsg		bitComm1StartMsg
+	#define bitRxStart			bitRx1Start
+	#define bitRxBusy			bitRx1Busy
+	#define bitTxStart			bitTx1Start
+	#define bitTxBusy			bitTx1Busy
+	#include ot-comm-common.inc
+#endif
+
+#ifdef USE_CHANNEL_2
+	;labels
+	#define commState0			comm2State0
+	#define commState1			comm2State1
+	#define commState2			comm2State2
+	#define commState3			comm2State3
+	#define commState4			comm2State4
+	#define commState5			comm2State5
+	#define commState6			comm2State6
+	#define commState7			comm2State7
+	#define commNextState		comm2NextState
+	#define commDone			comm2Done
+	;data
+	#define myCommState			myComm2State
+	#define myCommTimer			myComm2Timer
+	;bits
+	#define bitCommBusy			bitComm2Busy
+	#define bitCommStartMsg		bitComm2StartMsg
+	#define bitRxStart			bitRx2Start
+	#define bitRxBusy			bitRx2Busy
+	#define bitTxStart			bitTx2Start
+	#define bitTxBusy			bitTx2Busy
+	#include ot-comm-common.inc
+#endif
+
+#ifdef USE_CHANNEL_3
+	;labels
+	#define commState0			comm3State0
+	#define commState1			comm3State1
+	#define commState2			comm3State2
+	#define commState3			comm3State3
+	#define commState4			comm3State4
+	#define commState5			comm3State5
+	#define commState6			comm3State6
+	#define commState7			comm3State7
+	#define commNextState		comm3NextState
+	#define commDone			comm3Done
+	;data
+	#define myCommState			myComm3State
+	#define myCommTimer			myComm3Timer
+	;bits
+	#define bitCommBusy			bitComm3Busy
+	#define bitCommStartMsg		bitComm3StartMsg
+	#define bitRxStart			bitRx3Start
+	#define bitRxBusy			bitRx3Busy
+	#define bitTxStart			bitTx3Start
+	#define bitTxBusy			bitTx3Busy
+	#include ot-comm-common.inc
+#endif
+	return
+
