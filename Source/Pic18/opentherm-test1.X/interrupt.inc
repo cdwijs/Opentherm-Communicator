@@ -32,7 +32,8 @@
 ;*******************************************************************************
 interruptInit:
 	bsf	RCON,IPEN	;1 = Enable priority levels on interrupts
-	bsf	IPR1,TMR2IP	;1 = High priority
+	bsf	IPR1,TMR2IP	;1 = High priority for TMR2
+	bsf	IPR1,TX1IP	;1 = High priority for TX1
 	bsf	PIE1,TMR2IE	;1 = Enables the TMR2 to PR2 match interrupt 
 	bsf	INTCON,GIEH	;1 = Enables all high priority interrupts
 	return
@@ -40,6 +41,8 @@ interruptInit:
 interruptHigh:
 	btfsc	PIR1,TMR2IF	;1 = TMR2 to PR2 match occurred (must be cleared by software) 
 	call	int100usec		;replace by goto construction, to free up 1 stacklevel
+	btfsc	PIR1,TX1IF	;1 = The EUSART1 transmit buffer, TXREG1, is empty
+	call	serialTxInt
 	retfie	FAST		;auto-restore Wreg, Status and BSR registers
 	
 interruptLow:

@@ -30,9 +30,20 @@
 ;    OpenTherm,OpenTherm/Plus,OpenTherm/Lite and the OpenTherm logo are        *
 ;    registered trademarks of The OpenTherm Association.                       *
 ;*******************************************************************************
-;Manchester code has always a transition in the middle of the transmitted bit.
-;In order to compensate for clock drift the code syncronizes at the middle of 
-;the received bits.
+
+;On the PCB, the input is inverted. <9.5V is seen by the uC as a 1.
+;Idle level is >9.5 
+;At the uC pin, the following bitstream is seen. Each char represents 500uSec.
+;For clarity, a space is added after each msec
+
+;1111111 01 01 10 10 10 10 10 10 10 10 10 10 01 01 10 10 01 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 01 1111111
+;logical:1  1  0  0  0  0  0  0  0  0  0  0  1  1  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  
+;           D31   D29   D27   D25   D23   D21   D19   D17   D15   D13   D11   D9    D7    D5    D3    D1      
+;        Start D30   D28   D26   D24   D22   D20   D18   D16   D14   D12   D10   D8    D6    D4    D2    D0 Stop
+
+;we store the bit after we have seen the transition in the middle. A 10 is stored as a 0, a 01 is stored as a 1 
+
+;correct below comments:
 ;- "Logic one"
 ;     ___
 ;    |
@@ -56,6 +67,9 @@
 ;Idle    Start   D0      D1      D2      D3    D4
 
 ;The bitstream is sampled every 100uSec.
+;Manchester code has always a transition in the middle of the transmitted bit.
+;In order to compensate for clock drift the code syncronizes at the middle of 
+;the received bits.
 ;
 ;A perfectly clocked 1000 usec bit looks like this:
 ;           0                   1
@@ -291,7 +305,6 @@ Switchcase16:
 int100usec:
 	bcf	PIR1,TMR2IF
 	;sample input, edge detect
-#define DEBUG_LOOPBACK_TEST
 #ifdef INPUTS_ON_PORTA
 	#ifdef DEBUG_LOOPBACK_TEST
 		movff	LATB,myPortaNow
@@ -331,34 +344,64 @@ int100usec:
 	movwf	myPorteEdge
 	movff	myPorteNow,myPortePrevious
 #endif
-	;debug verify interrupt timing
-	btfsc	bitTx0Busy
-	bcf		bitTx0Start
 
+#define DEBUG_EDGES
+#ifdef DEBUG_EDGES
+	bcf		LATB,1
+	btfsc	myPortaEdge,0
+	bsf		LATB,1
+#endif
+
+	;debug verify interrupt timing
 	movlw	PRESCALE_1MS
 	decfsz	myPrescale1msec,f,ACCESS
 	bra		timerDone	
 	movwf	myPrescale1msec
 	;here 1msec has passed
+;cdw, move timers to better place
+#ifdef USE_CHANNEL_0
+	movf	myComm0Timer,f,ACCESS
+	bz		timercomm0done
+	decf	myComm0Timer,f,ACCESS
+timercomm0done:
+#endif
+#ifdef USE_CHANNEL_1
+	movf	myComm1Timer,f,ACCESS
+	bz		timercomm1done
+	decf	myComm1Timer,f,ACCESS
+timercomm1done:
+#endif
+#ifdef USE_CHANNEL_2
+	movf	myComm2Timer,f,ACCESS
+	bz		timercomm2done
+	decf	myComm2Timer,f,ACCESS
+timercomm2done:
+#endif
+#ifdef USE_CHANNEL_3
+	movf	myComm3Timer,f,ACCESS
+	bz		timercomm3done
+	decf	myComm3Timer,f,ACCESS
+timercomm3done:
+#endif
 	movlw	PRESCALE_125MS
 	decfsz	myPrescale125msec,f,ACCESS
 	bra		timerDone
 	movwf	myPrescale125msec		
 	;here 125msec has passed
+
 	movlw	PRESCALE_500MS
 	decfsz	myPrescale500msec,f,ACCESS
 	bra		timerDone
 	movwf	myPrescale500msec		
 	;here 500msec has passed
+#ifdef DEBUG_LOOPBACK_TEST
 	bsf		bitTx0Start
 	bsf		bitRx0Start
+#endif
 timerDone:
 	;end debug
-
-tx1Jump:
-
-	
-
+txJump:
+	;this only works correctly for tx0...
 	decfsz	myPrescale500usec,f,ACCESS
 	bra		tx0Done
 	movlw	PRESCALE_500US
@@ -529,6 +572,8 @@ tx1Jump:
 	#include manchester-common.inc
 #endif
 
-
-
+	;timing check
+;	movf	TMR2,w,ACCESS
+;	movwf	TXREG1,ACCESS
+;
 	return

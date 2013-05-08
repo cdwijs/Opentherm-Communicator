@@ -31,7 +31,8 @@
 ;    registered trademarks of The OpenTherm Association.                       *
 ;*******************************************************************************
 #define Carry	STATUS,C
-
+#define BANK_RAM_0	d'0'
+#define BANK_SFR	d'15'
 
 #ifdef  __18F23K22
 	#include P18F23K22.INC

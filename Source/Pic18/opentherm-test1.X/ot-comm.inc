@@ -36,47 +36,92 @@
 ;       +-------------+
 ;       |Idle         |
 ;       |-------------|
-;       |             |
-; +---->|BitCommBusy=0 |
+;       |BitRxStart=1 |
+; +---->|bitTxStart=0 |
 ; |     +------+------+
-; |            |BitStartMsg
+; |            |bitRxBusy
 ; |     +------v------+
-; |     |StartA       |
+; |     |WaitAnswer   |
 ; |     |-------------|
-; |     |BitCommBusy=1|
-; |     |BitTxStart=1 |
-; |     |BitRxStart=1 |
+; |     |bitRxStart=0 |
+; |     |             |
+; |     |             |
 ; |     +------+------+
-; |            |BitRxBusy
+; |            |!bitRxBusy
 ; |     +------v------+
-; |     |StartB       |
+; |     |CheckMessageA|
 ; |     |-------------|
-; |     |BitRxStart=0 |
-; |     |             +
+; |     |Timer = 20 ms|
+; |     |             |
 ; |     +------+------+
-; |            |!BitTxBusy
-; |     +------v------+      +---------------+
-; |     | Wait Answer |      |Timeout        |
-; |     |-------------|      |---------------|
-; |     |BitTxStart=0 |1 sec | BitRxAbort=1  |
-; |     |             |------>               |
-; |     +------+------+      +-------+-------+
-; |            |!BitRxBusy           |!BitRxBusy
-; |     +------v------+      +-------v-------+
-; |     |CheckMsg     |      |Aborted        |
-; |     |-------------|      |---------------|
-; |     |             |      | BitRxAbort=0  |
-; |     |             |      |               |
-; |     +------+------+      |---------------|
-; |            |<-------------------+
+; |     Error  |
+; |<-----------|
+; |            |
 ; |     +------v------+
-; |     |ReportMsg    |
+; |     |CheckmessageB|
 ; |     |-------------|
-; |     |Msg->rs232   |
+; |     |             |
 ; |     |             |
 ; |     +------+------+
 ; |            |
-; +<-----------+ 
+; |     +------v------+
+; |     |SetupAnswer  |
+; |     |-------------|
+; |     |             |
+; |     |             |
+; |     +------+------+
+; |            |
+; |     +------v------+
+; |     |WaitSend     |
+; |     |-------------|
+; |     |             |
+; |     |             |
+; |     +------+------+
+; |            |Timer
+; |     +------v------+
+; |     |SendAnswer   |
+; |     |-------------|
+; |     |             |
+; |     |             |
+; |     +------+------+
+; |            |!bitTxbusy
+; +<-----------+
+
+#define TIME_COMM_RESPONSE	d'20' ;*msec
+
+
+#define ID_MASTER_SLAVE_FLAGS				d'0'
+#define ID_CH_WATER_TEMP_SETPOINT			d'1'
+#define ID_REMOTE_OVERWRITE_ROOM_SETP		d'9'
+#define ID_MAX_REL_MOD_LEVEL				d'14'
+#define ID_MAX_BOILER_CAPACITY				d'15'
+#define ID_ROOM_SETPOINT					d'16'
+#define ID_RELATIVE_MODULATION_LEVEL		d'17'
+#define ID_WATER_PRESSURE_IN_CH_CIRCUIT		d'18'
+#define ID_DAY_OF_WEEK_AND_TIME_OF_DAY		d'20'
+#define ID_ROOM_TEMPERATURE					d'24'
+#define ID_BOILER_FLOW_WATER_TEMPERATURE	d'25'
+#define ID_DHW_TEMPERATURE					d'26'
+#define ID_OUTSIDE_TEMPERATURE				d'27'
+#define ID_RETURN_WATER_TEMPERATURE			d'28'
+#define ID_DHW_SETPOINT						d'56'
+#define ID_MAX_CH_WATER_SETPOINT			d'57'
+#define ID_REMOTE_OVERRIDE_FUNCTION			d'100' 
+
+#define OFFSET_MSG_TYPE						d'3'
+#define OFFSET_MSG_ID						d'2'
+#define OFFSET_DATA_HIGH					d'1'
+#define OFFSET_DATA_LOW						d'0'
+
+#define MSG_TYPE_READ_DATA					d'0'
+#define MSG_TYPE_WRITE_DATA					d'1'
+#define MSG_TYPE_INVALID_DATA				d'2'
+#define MSG_TYPE_RESERVED					d'3'
+#define MSG_TYPE_READ_ACK					d'4'
+#define MSG_TYPE_WRITE_ACK					d'5'
+#define MSG_TYPE_DATA_INVALID				d'6'
+#define MSG_TYPE_UNKNOWN_DATA_ID			d'7'
+
 commJumps:
 #ifdef USE_CHANNEL_0
 	;labels
@@ -93,6 +138,8 @@ commJumps:
 	;data
 	#define myCommState			myComm0State
 	#define myCommTimer			myComm0Timer
+	#define myRxBuffer			myRx0Buffer
+	#define myTxBuffer			myTx0Buffer
 	;bits
 	#define bitCommBusy			bitComm0Busy
 	#define bitCommStartMsg		bitComm0StartMsg
@@ -118,6 +165,8 @@ commJumps:
 	;data
 	#define myCommState			myComm1State
 	#define myCommTimer			myComm1Timer
+	#define myRxBuffer			myRx1Buffer
+	#define myTxBuffer			myTx1Buffer
 	;bits
 	#define bitCommBusy			bitComm1Busy
 	#define bitCommStartMsg		bitComm1StartMsg
@@ -143,6 +192,8 @@ commJumps:
 	;data
 	#define myCommState			myComm2State
 	#define myCommTimer			myComm2Timer
+	#define myRxBuffer			myRx2Buffer
+	#define myTxBuffer			myTx2Buffer
 	;bits
 	#define bitCommBusy			bitComm2Busy
 	#define bitCommStartMsg		bitComm2StartMsg
@@ -168,6 +219,8 @@ commJumps:
 	;data
 	#define myCommState			myComm3State
 	#define myCommTimer			myComm3Timer
+	#define myRxBuffer			myRx3Buffer
+	#define myTxBuffer			myTx3Buffer
 	;bits
 	#define bitCommBusy			bitComm3Busy
 	#define bitCommStartMsg		bitComm3StartMsg

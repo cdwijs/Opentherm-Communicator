@@ -30,6 +30,10 @@
 ;    OpenTherm,OpenTherm/Plus,OpenTherm/Lite and the OpenTherm logo are        *
 ;    registered trademarks of The OpenTherm Association.                       *
 ;*******************************************************************************
+;debug directives:
+;define DEBUG_LOOPBACK_TEST
+
+
 #include config.inc
 
 
@@ -46,10 +50,13 @@ myreset: org 0x01fe		;prepare for bootloader
 	call	variablesInit
 	call	ioInit
 	call	timingInit
+	call	serialInit
 	call	interruptInit
 mainloop:
 	clrwdt
+#ifndef DEBUG_LOOPBACK_TEST
 	call	commJumps
+#endif
 	goto	mainloop
 
 #include io.inc
@@ -58,5 +65,6 @@ mainloop:
 #include interrupt.inc   
 #include manchester.inc
 #include ot-comm.inc
+#include serial.inc
 
     END

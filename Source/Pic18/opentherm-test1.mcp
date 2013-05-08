@@ -1,7 +1,7 @@
 [HEADER]
 magic_cookie={66E99B07-E706-4689-9E80-9B2582898A13}
 file_version=1.0
-device=PIC18F45K22
+device=PIC18F43K22
 [PATH_INFO]
 BuildDirPolicy=BuildDirIsProjectDir
 dir_src=
@@ -33,6 +33,10 @@ file_005=.
 file_006=.
 file_007=.
 file_008=.
+file_009=.
+file_010=.
+file_011=.
+file_012=.
 [GENERATED_FILES]
 file_000=no
 file_001=no
@@ -43,6 +47,10 @@ file_005=no
 file_006=no
 file_007=no
 file_008=no
+file_009=no
+file_010=no
+file_011=no
+file_012=no
 [OTHER_FILES]
 file_000=no
 file_001=no
@@ -53,6 +61,10 @@ file_005=no
 file_006=no
 file_007=no
 file_008=no
+file_009=no
+file_010=no
+file_011=no
+file_012=no
 [FILE_INFO]
 file_000=opentherm-test1.X\ot-communicator.asm
 file_001=opentherm-test1.X\manchester.inc
@@ -63,6 +75,10 @@ file_005=opentherm-test1.X\config.inc
 file_006=opentherm-test1.X\io.inc
 file_007=opentherm-test1.X\timing.inc
 file_008=opentherm-test1.X\ot-comm-common.inc
+file_009=opentherm-test1.X\interrupt.inc
+file_010=opentherm-test1.X\manchester-common.inc
+file_011=opentherm-test1.X\P18F45K22.INC
+file_012=opentherm-test1.X\serial.inc
 [SUITE_INFO]
 suite_guid={6B3DAA78-59C1-46DD-B6AA-DBDAE4E06484}
 suite_state=generate-absolute-code

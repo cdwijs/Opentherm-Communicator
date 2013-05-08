@@ -1,5 +1,5 @@
 ;*******************************************************************************
-;    variables.inc                                                             *
+;    serial.inc                                                                *
 ;    Copyright 2013 Cedric de Wijs.                                            *
 ;                                                                              *
 ;    This file is part of Opentherm Communicator                               *
@@ -30,132 +30,70 @@
 ;    OpenTherm,OpenTherm/Plus,OpenTherm/Lite and the OpenTherm logo are        *
 ;    registered trademarks of The OpenTherm Association.                       *
 ;*******************************************************************************
-#define RAMSTART_ACCESS	h'00'
-#define SERIAL_BUF_SIZE h'10'
-#define SERIAL_BUF_MASK (SERIAL_BUF_SIZE-1)
+;Baudrate 19K2
+;BRGH=1, BRG16=1
+;              16MHz/4
+;(SPBRG) = ---------= 208.33
+;              19200  
+;define INIT_SPBRG	d'207'	;19K2 = 207
+#define INIT_SPBRG	d'34'	;115k2 = 34
 
-	cblock	RAMSTART_ACCESS
-		myPrescale1msec:1		;timing
-		myPrescale125msec:1
-		myPrescale500msec:1
-		myPrescale500usec:1
-	endc
+serialInit:
+	movlb	BANK_RAM_0
 
-	cblock
-		myRs232TxBuf:SERIAL_BUF_SIZE	;serial port
-		myRs232TxProducer
-		myRs232TxConsumer
-	endc
+	movlw	high(INIT_SPBRG)
+	movwf	SPBRGH1,ACCESS
+	movlw	low(INIT_SPBRG)
+	movwf	SPBRG1,ACCESS
 
-
-	cblock
-		reg0:1	;
-	endc
-	
-	#ifdef INPUTS_ON_PORTA
-		cblock
-		myPortaEdge:1			;edge detector
-		myPortaNow:1		
-		myPortaPrevious:1
-		endc
-	#endif
-	#ifdef INPUTS_ON_PORTB
-		cblock
-		myPortbEdge:1			;edge detector
-		myPortbNow:1
-		myPortbPrevious:1
-		endc		
-	#endif
-	#ifdef INPUTS_ON_PORTC
-		cblock
-		myPortcNow:1			;edge detector
-		myPortcEdge:1
-		myPortcPrevious:1
-		endc
-	#endif
-	#ifdef INPUTS_ON_PORTD
-		cblock
-		myPortdEdge:1			;edge detector
-		myPortdNow:1
-		myPortdPrevious:1
-		endc
-	#endif
-	#ifdef INPUTS_ON_PORTE
-		cblock
-		myPorteEdge:1			;edge detector
-		myPorteNow:1
-		myPortePrevious:1
-		endc
-	#endif
-	
-	#ifdef USE_CHANNEL_0
-		#define bitTx0Start 		my0Flags,0
-		#define bitTx0Busy			my0Flags,1
-		#define bitRx0Start			my0Flags,2
-		#define bitRx0Busy			my0Flags,3
-		#define bitComm0StartMsg	my0Flags,4
-		#define bitComm0Busy		my0Flags,5
-		cblock
-			my0Flags:1
-			myTx0State:1
-			myTx0Counter:1
-			myTx0Buffer:4
-			myRx0State:1
-			myRx0Counter:1
-			myRx0Buffer:4
-			myComm0State:1
-			myComm0Timer:1
-		endc
-	#endif
-	#ifdef USE_CHANNEL_1
-		#define bitTx1Start 		my1Flags,0
-		#define bitTx1Busy			my1Flags,1
-		#define bitRx1Start			my1Flags,2
-		#define bitRx1Busy			my1Flags,3
-		#define bitComm1StartMsg	my1Flags,4
-		#define bitComm1Busy		my1Flags,5
-		cblock
-			my1Flags:1
-			myTx1State:1
-			myTx1Counter:1
-			myTx1Buffer:4
-			myRx1State:1
-			myRx1Counter:1
-			myRx1Buffer:4
-			myComm1State:1
-			myComm1Timer:1
-		endc
-	#endif
-	#ifdef USE_CHANNEL_2
-		#define bitTx2Start 		my2Flags,0
-		#define bitTx2Busy			my2Flags,1
-		#define bitRx2Start			my2Flags,2
-		#define bitRx2Busy			my2Flags,3
-		#define bitComm2StartMsg	my2Flags,4
-		#define bitComm2Busy		my2Flags,5
-		cblock
-			my2Flags:1
-			myTx2State:1
-			myTx2Counter:1
-			myTx2Buffer:4
-			myRx2State:1
-			myRx2Counter:1
-			myRx2Buffer:4
-			myComm2State:1
-			myComm2Timer:1
-		endc
-	#endif
-
-
-
-
-
-#define RAMSTART_BANK0 h'0000'
-variablesInit:
-	lfsr	FSR0, RAMSTART_BANK0
-varLoop:
-	clrf	POSTINC0
-	btfss	FSR0H,1		;stop at the begin of bank2 (0x0200)
-	bra		varLoop		;writes to uminplemented locations are ignored
+	bsf		TXSTA1,BRGH,ACCESS
+	bsf		BAUDCON1,BRG16
+	bcf		TXSTA1,SYNC,ACCESS
+	bsf		TRISC,6,ACCESS
+	bsf		RCSTA1,SPEN,ACCESS
+	bsf		TXSTA1,TXEN,ACCESS
+	movlw	SERIAL_BUF_MASK ;debug
+	movlw	'H'
+	movwf	reg0
+	call	serialPutByte
+	movlw	'o'
+	movwf	reg0
+	call	serialPutByte
+	movlw	'i'
+	movwf	reg0
+	call	serialPutByte
+	movlw	'!'
+	movwf	reg0
+	call	serialPutByte
 	return
 
+#define regserialbyte	reg0
+serialPutByte
+	;place byte in reg0 into buffer, it does not check for space in the buffer
+	lfsr	0,myRs232TxBuf
+	incf	myRs232TxProducer,w,ACCESS
+	andlw	SERIAL_BUF_MASK
+	movwf	myRs232TxProducer,ACCESS	
+	movff	regserialbyte,PLUSW0
+	bsf		PIE1,TX1IE ;enable TX interrupt here
+	return
+#undefine regserialbyte
+
+serialTxInt:
+;need to save / restore FSR0 here, or only use fsr0 in interrupt
+	;if producer != consumer, there's data to be send
+	lfsr	0,myRs232TxBuf
+	movf	myRs232TxConsumer,w,ACCESS
+	cpfseq	myRs232TxProducer,ACCESS
+	bra		serialTxIntBusy
+	bcf		PIE1,TX1IE ;disable interrupt
+	bra		serialTxIntDone						
+serialTxIntBusy:
+	incf	myRs232TxConsumer,w,ACCESS
+	andlw	SERIAL_BUF_MASK
+	movwf	myRs232TxConsumer,ACCESS
+	movff	PLUSW0,TXREG1
+	
+	
+serialTxIntDone:
+	return

@@ -35,7 +35,7 @@
 #define TX_STATE_IDLE		d'0'
 #define txStateSendStartA	txState1
 #define txStateSendStartB	txState2
-#define txStateSendBitA	txState3
+#define txStateSendBitA		txState3
 #define TX_STATE_SENDBIT_A	d'3'
 #define txStateSendBitB	txState4
 #define txStateSendStopA	txState5
@@ -55,7 +55,7 @@
 
 txStateIdle:
 	bcf		bitTxBusy
-	;debug
+#ifdef DEBUG_LOOPBACK_TEST
 	movlw	h'EF'
 	movwf	myTxBuffer+0
 	movlw	h'BE'
@@ -64,14 +64,14 @@ txStateIdle:
 	movwf	myTxBuffer+2
 	movlw	h'DE'
 	movwf	myTxBuffer+3
-	;end debug
+#endif
 
 	btfss	bitTxStart
 	bra		txDone
 	bra		txNextState
 
 txStateSendStartA:
-#ifdef OUTPUT_ACTIVE_HIGH
+#ifdef OUTPUT_INVERTED
 	bcf		pinOutTx
 #else
 	bsf		pinOutTx
@@ -82,15 +82,15 @@ txStateSendStartA:
 	bra		txNextState
 
 txStateSendStartB:
-#ifdef OUTPUT_ACTIVE_HIGH
+#ifdef OUTPUT_INVERTED
 	bsf		pinOutTx	
 #else
 	bcf		pinOutTx
 #endif
 	bra		txNextState
-
+;cdw, check polarity
 txStateSendBitA
-#ifdef OUTPUT_ACTIVE_HIGH
+#ifdef OUTPUT_INVERTED
 	btfss	myTxBuffer+3,7
 	bsf		pinOutTx	;invert highest bit to output pin
 	btfsc	myTxBuffer+3,7
@@ -102,9 +102,9 @@ txStateSendBitA
 	bsf		pinOutTx
 #endif
 	bra		txNextState
-
+;cdw, check polarity
 txStateSendBitB
-#ifdef OUTPUT_ACTIVE_HIGH
+#ifdef OUTPUT_INVERTED
 	btfss	myTxBuffer+3,7
 	bcf		pinOutTx	;copy highest bit to output pin
 	btfsc	myTxBuffer+3,7
@@ -126,20 +126,20 @@ txStateSendBitB
 	movlw	TX_STATE_SENDBIT_A
 	movwf	myTxState,ACCESS
 	bra		txDone
-
+;cdw, check polarity
 txStateSendStopA:
-#ifdef OUTPUT_ACTIVE_HIGH
-	bsf		pinOutTx
-#else
-	bcf		pinOutTx	
-#endif
-	bra		txNextState
-
-txStateSendStopB:
-#ifdef OUTPUT_ACTIVE_HIGH
+#ifdef OUTPUT_INVERTED
 	bcf		pinOutTx
 #else
+	bsf		pinOutTx	
+#endif
+	bra		txNextState
+;cdw, check polarity
+txStateSendStopB:
+#ifdef OUTPUT_INVERTED
 	bsf		pinOutTx
+#else
+	bcf		pinOutTx
 #endif
 	movlw	TX_STATE_IDLE
 	movwf	myTxState,ACCESS
@@ -194,6 +194,7 @@ txDone:
 #define rxStateSample3		rxState5
 #define rxStateSample4		rxState6
 #define rxStateSample5		rxState7
+#define RX_SAMPLE_5			d'7'
 #define rxStateSample6		rxState8
 #define rxStateSample7		rxState9
 #define rxStateSample8		rxState10
@@ -230,17 +231,20 @@ rxStateIdle:
 
 rxStateWaitStart:
 	bsf		bitRxBusy
-#ifdef INPUT_ACTIVE_HIGH
-	btfss	pinInRx
+	btfss	edgeRx		;only react to an edge, not a stuck-at-active signal...
+	bra		rxDone
+#ifdef INPUT_INVERTED
+	btfsc	pinInRx
 #else
-	btfsc	pinInRx	
+	btfss	pinInRx
 #endif
 	bra		rxDone
-	movlw	NUM_RX_BITS+1 ;first bit is startbit
+	movlw	NUM_RX_BITS+1+1 ;first bit is startbit, and first decrement, and then check
 	movwf	myRxCounter,ACCESS
-
-
-	bra		rxNextState
+	;first edge is at start of bit, so skip half a bittime
+	movlw	RX_SAMPLE_5
+	movwf	myRxState,ACCESS
+	bra		rxDone
 
 rxStateSample0:
 rxStateSample1:
@@ -278,10 +282,10 @@ rxStoreBit:
 	;opentherm sends and receives data MSB first
 	;store bit here
 	dcfsnz	myRxCounter,f,ACCESS
-	bra		rxSetIdleState
-
+	bra		rxSetIdleState	;cdw, this code does not check for stopbit
+	
 	bcf		Carry
-#ifdef INPUT_ACTIVE_HIGH
+#ifdef INPUT_INVERTED
 	btfsc	pinInRx
 #else
 	btfss	pinInRx
@@ -297,14 +301,13 @@ rxStoreBit:
 	movwf	myRxState,ACCESS
 	bra		rxDone
 
-
 rxErrorLateEdge:
 	;set error bit here
 	bra		rxSetIdleState
 
 rxErrorFastEdge:
 	;set error bit here
-	;bra	rxSetIdleState
+	bra	rxSetIdleState
 rxSetIdleState:
 	movlw	RX_STATE_IDLE
 	movwf	myRxState,ACCESS
