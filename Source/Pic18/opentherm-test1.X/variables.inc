@@ -31,7 +31,7 @@
 ;    registered trademarks of The OpenTherm Association.                       *
 ;*******************************************************************************
 #define RAMSTART_ACCESS	h'00'
-#define SERIAL_BUF_SIZE h'10'
+#define SERIAL_BUF_SIZE h'20' ;must be power of 2
 #define SERIAL_BUF_MASK (SERIAL_BUF_SIZE-1)
 
 	cblock	RAMSTART_ACCESS
@@ -49,7 +49,8 @@
 
 
 	cblock
-		reg0:1	;
+		reg0:1	
+		reg1:1
 	endc
 	
 	#ifdef INPUTS_ON_PORTA

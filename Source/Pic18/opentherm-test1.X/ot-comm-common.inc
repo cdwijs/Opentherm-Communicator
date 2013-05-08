@@ -100,39 +100,39 @@ commStateCheckMessageA:
 commStateCheckMessageID:
 	movf	myRxBuffer+OFFSET_MSG_ID,w
 	xorlw	ID_MASTER_SLAVE_FLAGS
-	bz		commStateCheckKnown
+	bz		commIdSlaveFlags
 	xorlw	ID_CH_WATER_TEMP_SETPOINT^ID_MASTER_SLAVE_FLAGS
-	bz		commStateCheckKnown
+	bz		commIdTempSetpoint
 	xorlw	ID_REMOTE_OVERWRITE_ROOM_SETP^ID_CH_WATER_TEMP_SETPOINT
-	bz		commStateCheckKnown
+	bz		commIdRemoteOverwrite
 	xorlw	ID_MAX_REL_MOD_LEVEL^ID_REMOTE_OVERWRITE_ROOM_SETP
-	bz		commStateCheckKnown
+	bz		commIdMaxRelMod
 	xorlw	ID_MAX_BOILER_CAPACITY^ID_MAX_REL_MOD_LEVEL	
-	bz		commStateCheckKnown
+	bz		commIdMaxBoilerCapacity
 	xorlw	ID_ROOM_SETPOINT^ID_MAX_BOILER_CAPACITY
-	bz		commStateCheckKnown
+	bz		commIdRoomSetpoint
 	xorlw	ID_RELATIVE_MODULATION_LEVEL^ID_ROOM_SETPOINT
-	bz		commStateCheckKnown
+	bz		commIdRelModLevel
 	xorlw	ID_WATER_PRESSURE_IN_CH_CIRCUIT^ID_RELATIVE_MODULATION_LEVEL
-	bz		commStateCheckKnown
+	bz		commIdWaterPressInCh
 	xorlw	ID_DAY_OF_WEEK_AND_TIME_OF_DAY^ID_WATER_PRESSURE_IN_CH_CIRCUIT
-	bz		commStateCheckKnown
+	bz		commIdDayOfWeek
 	xorlw	ID_ROOM_TEMPERATURE^ID_DAY_OF_WEEK_AND_TIME_OF_DAY
-	bz		commStateCheckKnown
+	bz		commIdRoomTemp
 	xorlw	ID_BOILER_FLOW_WATER_TEMPERATURE^ID_ROOM_TEMPERATURE
-	bz		commStateCheckKnown
+	bz		commIdFlowWaterTemp
 	xorlw	ID_DHW_TEMPERATURE^ID_BOILER_FLOW_WATER_TEMPERATURE
-	bz		commStateCheckKnown
+	bz		commIdDwhTemp
 	xorlw	ID_OUTSIDE_TEMPERATURE^ID_DHW_TEMPERATURE
-	bz		commStateCheckKnown
+	bz		commIdOutsideTemp
 	xorlw	ID_RETURN_WATER_TEMPERATURE^ID_OUTSIDE_TEMPERATURE
-	bz		commStateCheckKnown
+	bz		commIdReturnWaterTemp
 	xorlw	ID_DHW_SETPOINT^ID_RETURN_WATER_TEMPERATURE
-	bz		commStateCheckKnown
+	bz		commIdDhwSetpoint
 	xorlw	ID_MAX_CH_WATER_SETPOINT^ID_DHW_SETPOINT
-	bz		commStateCheckKnown
+	bz		commIdMaxChWaterSetpoint
 	xorlw	ID_REMOTE_OVERRIDE_FUNCTION^ID_MAX_CH_WATER_SETPOINT
-	bz		commStateCheckKnown
+	bz		commIdRemoteOverRide
 
 	;here the ID is not known
 	;prepare answer: "ID not known"
@@ -143,6 +143,50 @@ commStateCheckMessageID:
 	clrf	myTxBuffer+OFFSET_DATA_LOW,ACCESS
 	bra		commNextState
 	
+commIdSlaveFlags:
+	clrf	myTxBuffer+OFFSET_DATA_LOW,ACCESS
+	clrf	myTxBuffer+OFFSET_DATA_HIGH,ACCESS
+	bsf		myTxBuffer+OFFSET_DATA_LOW,1 ;enable CH mode
+	bsf		myTxBuffer+OFFSET_DATA_LOW,3 ;enable flame (seems to only work in combination with bit1)
+;	bsf		myTxBuffer+OFFSET_DATA_LOW,5 ;enable CH2 mode
+	bra		commStateCheckKnown
+commIdTempSetpoint:
+	bra		commStateCheckKnown
+commIdRemoteOverwrite:
+	bra		commStateCheckKnown
+commIdMaxRelMod:
+	bra		commStateCheckKnown
+commIdMaxBoilerCapacity:
+	bra		commStateCheckKnown
+commIdRoomSetpoint:
+	bra		commStateCheckKnown
+commIdRelModLevel:
+	bra		commStateCheckKnown
+commIdWaterPressInCh:
+	bra		commStateCheckKnown
+commIdDayOfWeek:
+	bra		commStateCheckKnown
+commIdRoomTemp:
+	bra		commStateCheckKnown
+commIdFlowWaterTemp:
+	bra		commStateCheckKnown
+commIdDwhTemp:
+	bra		commStateCheckKnown
+commIdOutsideTemp:
+	bra		commStateCheckKnown
+commIdReturnWaterTemp:
+	bra		commStateCheckKnown
+commIdDhwSetpoint:
+	bra		commStateCheckKnown
+commIdMaxChWaterSetpoint:
+	bra		commStateCheckKnown
+commIdRemoteOverRide:
+	bra		commStateCheckKnown
+
+
+
+
+
 
 commStateCheckKnown:
 #define messagetype reg0
@@ -166,8 +210,8 @@ commReadData: ;thermostat is reading from us
 ;	movlw	(MSG_TYPE_DATA_INVALID << 4)
 	movwf	myTxBuffer+OFFSET_MSG_TYPE,ACCESS
 	movff	myRxBuffer+OFFSET_MSG_ID,myTxBuffer+OFFSET_MSG_ID
-	clrf	myTxBuffer+OFFSET_DATA_HIGH,ACCESS ;remove this, and fill in the data above
-	clrf	myTxBuffer+OFFSET_DATA_LOW,ACCESS
+;	clrf	myTxBuffer+OFFSET_DATA_HIGH,ACCESS ;remove this, and fill in the data above
+;	clrf	myTxBuffer+OFFSET_DATA_LOW,ACCESS
 
 	;debug, replay 0x40192F80 to question 0x80190000
 ;	movlw	h'2F'
@@ -228,30 +272,44 @@ commStateSetupAnswer:
 ;	cpfseq	myRs232TxProducer,ACCESS
 ;	bra		commDone
 	;cdw, assume for now buffer is empty after a second
-	;cdw, add byte to ascii nibble converter
+#ifdef DEBUG_RS232_SPACES
+	movlw	' '
+	call	serialPutByte
+#endif
 	movlw	'T'
-	movwf	reg0
 	call	serialPutByte
-	movff	myRxBuffer+3,reg0
+	movf	myRxBuffer+3,w,ACCESS
+	call	serialPutByteHex
+	movf	myRxBuffer+2,w,ACCESS
+	call	serialPutByteHex
+	movf	myRxBuffer+1,w,ACCESS
+	call	serialPutByteHex
+	movf	myRxBuffer+0,w,ACCESS
+	call	serialPutByteHex
+	movlw	h'0d' ;cr + lf
 	call	serialPutByte
-	movff	myRxBuffer+2,reg0
-	call	serialPutByte
-	movff	myRxBuffer+1,reg0
-	call	serialPutByte
-	movff	myRxBuffer+0,reg0
+	movlw	h'0a'
 	call	serialPutByte
 
+#ifdef DEBUG_RS232_SPACES
+	movlw	' '
+	call	serialPutByte
+#endif
 	movlw	'B'
-	movwf	reg0
 	call	serialPutByte
-	movff	myTxBuffer+3,reg0
+	movf	myTxBuffer+3,w,ACCESS
+	call	serialPutByteHex
+	movf	myTxBuffer+2,w,ACCESS
+	call	serialPutByteHex
+	movf	myTxBuffer+1,w,ACCESS
+	call	serialPutByteHex
+	movf	myTxBuffer+0,w,ACCESS
+	call	serialPutByteHex
+	movlw	h'0d' ;cr + lf
 	call	serialPutByte
-	movff	myTxBuffer+2,reg0
+	movlw	h'0a'
 	call	serialPutByte
-	movff	myTxBuffer+1,reg0
-	call	serialPutByte
-	movff	myTxBuffer+0,reg0
-	call	serialPutByte
+
 ;end report code
 	bra		commNextState
 #undefine regparity

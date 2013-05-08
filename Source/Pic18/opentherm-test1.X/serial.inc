@@ -34,9 +34,10 @@
 ;BRGH=1, BRG16=1
 ;              16MHz/4
 ;(SPBRG) = ---------= 208.33
-;              19200  
-;define INIT_SPBRG	d'207'	;19K2 = 207
-#define INIT_SPBRG	d'34'	;115k2 = 34
+;              19200
+#define INIT_SPBRG	d'416'	;9600 = 416  
+;define INIT_SPBRG	d'207'	;19K2 = 207 ;reports only 2 chars on 19K2 or 9600 baud?
+;define INIT_SPBRG	d'34'	;115k2 = 34
 
 serialInit:
 	movlb	BANK_RAM_0
@@ -54,22 +55,38 @@ serialInit:
 	bsf		TXSTA1,TXEN,ACCESS
 	movlw	SERIAL_BUF_MASK ;debug
 	movlw	'H'
-	movwf	reg0
 	call	serialPutByte
 	movlw	'o'
-	movwf	reg0
 	call	serialPutByte
 	movlw	'i'
-	movwf	reg0
 	call	serialPutByte
 	movlw	'!'
-	movwf	reg0
 	call	serialPutByte
 	return
 
+#define regserialbyte	reg1
+serialPutByteHex
+	movwf	regserialbyte,ACCESS
+	swapf	regserialbyte,w,ACCESS	;get highnibble
+	andlw	h'0f'
+	addlw	-d'10'
+	btfsc	Carry
+	addlw	'A' - '9'  -1
+	addlw	'0' + d'10'
+	call	serialPutByte
+	movf	regserialbyte,w,ACCESS	;get lownibble
+	andlw	h'0f'
+	addlw	-d'10'
+	btfsc	Carry
+	addlw	'A' - '9'  -1
+	addlw	'0' + d'10'
+	call	serialPutByte
+	return
+#undefine regserialbyte
 #define regserialbyte	reg0
 serialPutByte
-	;place byte in reg0 into buffer, it does not check for space in the buffer
+	;place byte in wreg into buffer, it does not check for space in the buffer
+	movwf	regserialbyte,ACCESS
 	lfsr	0,myRs232TxBuf
 	incf	myRs232TxProducer,w,ACCESS
 	andlw	SERIAL_BUF_MASK

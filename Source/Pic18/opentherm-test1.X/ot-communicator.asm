@@ -32,7 +32,7 @@
 ;*******************************************************************************
 ;debug directives:
 ;define DEBUG_LOOPBACK_TEST
-
+;define DEBUG_RS232_SPACES
 
 #include config.inc
 
