@@ -173,5 +173,5 @@ ioInit:
 	movwf	PORTE,ACCESS
 	movlw	INIT_TRISE
 	movwf	TRISE,ACCESS
-	movlb	d'0'
+	movlb	BANK_RAM_0
 	return

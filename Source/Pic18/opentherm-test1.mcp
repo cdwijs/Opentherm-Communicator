@@ -80,9 +80,9 @@ file_007=opentherm-test1.X\timing.inc
 file_008=opentherm-test1.X\interrupt.inc
 file_009=opentherm-test1.X\P18F45K22.INC
 file_010=opentherm-test1.X\serial.inc
-file_011=opentherm-test1.X\manchester-Rx-states.inc
-file_012=opentherm-test1.X\manchester-Tx-states.inc
-file_013=opentherm-test1.X\ot-comm-states.inc
+file_011=opentherm-test1.X\ot-comm-states.inc
+file_012=opentherm-test1.X\manchester-Rx-states.inc
+file_013=opentherm-test1.X\manchester-Tx-states.inc
 [SUITE_INFO]
 suite_guid={6B3DAA78-59C1-46DD-B6AA-DBDAE4E06484}
 suite_state=generate-absolute-code

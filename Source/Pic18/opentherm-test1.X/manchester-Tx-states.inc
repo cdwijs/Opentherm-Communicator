@@ -189,7 +189,7 @@ txStateSendBitB
 	rlcf	myTxBuffer+0,f,ACCESS
 	rlcf	myTxBuffer+1,f,ACCESS
 	rlcf	myTxBuffer+2,f,ACCESS
-	rlcf	myTxBuffer+3,f,ACCESS
+	rlcf	myTxBuffer+3,f,ACCESS 
 	movlw	TX_STATE_SENDBIT_A
 	movwf	myTxState,ACCESS
 	bra		txDone

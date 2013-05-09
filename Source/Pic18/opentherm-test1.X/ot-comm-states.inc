@@ -307,16 +307,16 @@ commStateSetupAnswer:
 	movf	myTxBuffer+3,w,ACCESS
 	xorwf	myTxBuffer+2,w,ACCESS
 	xorwf	myTxBuffer+1,w,ACCESS
-	xorwf	myTxBuffer+0,w,ACCESS
+	xorwf	myTxBuffer+0,w,ACCESS		
 	movwf	regparity,ACCESS
 
-	swapf	regparity,w,ACCESS
-    xorwf   regparity,f,ACCESS
+	swapf	regparity,w,ACCESS 
+    xorwf   regparity,f,ACCESS 
 	bcf		Carry
     rrcf	regparity,w,ACCESS
     xorwf   regparity,f,ACCESS
     btfsc   regparity,2 
-    incf	regparity,f,ACCESS
+    incf	regparity,f,ACCESS 
     ;parity is now in lowest bit of reg0
 	movlw	h'80'		
 	btfsc	regparity,0 	;0 means even, 1 means odd

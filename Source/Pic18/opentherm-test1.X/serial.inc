@@ -53,7 +53,6 @@ serialInit:
 	bsf		TRISC,6,ACCESS
 	bsf		RCSTA1,SPEN,ACCESS
 	bsf		TXSTA1,TXEN,ACCESS
-	movlw	SERIAL_BUF_MASK ;debug
 	movlw	'H'
 	call	serialPutByte
 	movlw	'o'
