@@ -1,5 +1,5 @@
 ;*******************************************************************************
-;    ot-comm-re-use.inc                                                               *
+;    ot-comm-states.inc                                                        *
 ;    Copyright 2013 Cedric de Wijs.                                            *
 ;                                                                              *
 ;    This file is part of Opentherm Communicator                               *
@@ -30,16 +30,71 @@
 ;    OpenTherm,OpenTherm/Plus,OpenTherm/Lite and the OpenTherm logo are        *
 ;    registered trademarks of The OpenTherm Association.                       *
 ;*******************************************************************************
+;This state machine handles the opentherm conversation.
+;It sends the request to the thermostat, handles timeout and parity check
 
+;       +-------------+
+;       |Idle         |
+;       |-------------|
+;       |BitRxStart=1 |
+; +---->|bitTxStart=0 |
+; |     +------+------+
+; |            |bitRxBusy
+; |     +------v------+
+; |     |WaitAnswer   |
+; |     |-------------|
+; |     |bitRxStart=0 |
+; |     |             |
+; |     |             |
+; |     +------+------+
+; |            |!bitRxBusy
+; |     +------v------+
+; |     |CheckMessageA|
+; |     |-------------|
+; |     |Timer = 20 ms|
+; |     |             |
+; |     +------+------+
+; |     Error  |
+; |<-----------|
+; |            |
+; |     +------v------+
+; |     |CheckmessageB|
+; |     |-------------|
+; |     |             |
+; |     |             |
+; |     +------+------+
+; |            |
+; |     +------v------+
+; |     |SetupAnswer  |
+; |     |-------------|
+; |     |             |
+; |     |             |
+; |     +------+------+
+; |            |
+; |     +------v------+
+; |     |WaitSend     |
+; |     |-------------|
+; |     |             |
+; |     |             |
+; |     +------+------+
+; |            |Timer
+; |     +------v------+
+; |     |SendAnswer   |
+; |     |-------------|
+; |     |             |
+; |     |             |
+; |     +------+------+
+; |            |!bitTxbusy
+; +<-----------+
 #define commStateIdle			commState0
 #define COMM_STATE_IDLE			d'0'
 #define commStateWaitAnswer		commState1
 #define commStateCheckMessageA	commState2
 #define commStateCheckMessageID	commState3
 #define commStateSetupAnswer	commState4
-#define commStateWaitSend		commState5
-#define commStateSendAnswer		commState6
-#define commStateUnused7		commState7
+#define commStateReport			commState5
+#define commStateWaitSend		commState6
+#define commStateSendAnswer		commState7
 
 	movf	myCommState,w,ACCESS
 	call	Switchcase8
@@ -194,7 +249,7 @@ commStateCheckKnown:
 	swapf	myRxBuffer+3,w,ACCESS
 	andlw	h'07' ;w now holds message type, 0-7
 	btfsc	WREG,2
-	bra		commStateCheckWrongMessagetype
+	bra		commStateCheckWrongMsgtype
 	
 	bz		commReadData  ;reg=00
 	decf	WREG,f,ACCESS
@@ -202,7 +257,8 @@ commStateCheckKnown:
 	decf	WREG,f,ACCESS
 	bz		commWriteInvalid ;reg=10
 	;reg=11 is reserved, drop packet
-	bra		commStateCheckWrongMessagetype
+	bra		commStateCheckWrongMsgtype
+#undefine messagetype
 	
 commReadData: ;thermostat is reading from us
 	;for now send always 0, wich is invalid :-)
@@ -240,7 +296,7 @@ commWriteInvalid:
 	clrf	myTxBuffer+OFFSET_DATA_LOW,ACCESS
 	bra		commNextState
 
-commStateCheckWrongMessagetype:
+commStateCheckWrongMsgtype:
 	movlw	COMM_STATE_IDLE
 	movwf	myCommState,ACCESS
 	bra		commDone	
@@ -251,27 +307,28 @@ commStateSetupAnswer:
 	movf	myTxBuffer+3,w,ACCESS
 	xorwf	myTxBuffer+2,w,ACCESS
 	xorwf	myTxBuffer+1,w,ACCESS
-	xorwf	myTxBuffer+0,w,ACCESS		
+	xorwf	myTxBuffer+0,w,ACCESS
 	movwf	regparity,ACCESS
 
-	swapf	regparity,w,ACCESS 
-    xorwf   regparity,f,ACCESS 
+	swapf	regparity,w,ACCESS
+    xorwf   regparity,f,ACCESS
 	bcf		Carry
     rrcf	regparity,w,ACCESS
     xorwf   regparity,f,ACCESS
     btfsc   regparity,2 
-    incf	regparity,f,ACCESS 
+    incf	regparity,f,ACCESS
     ;parity is now in lowest bit of reg0
 	movlw	h'80'		
 	btfsc	regparity,0 	;0 means even, 1 means odd
 	xorwf	myTxBuffer+3	;invert parity bit if odd to make even
+	bra		commNextState
 
-;cdw, move to better place: now report to serial port
-	;cdw, move to seperate state
-;	movf	myRs232TxConsumer,w,ACCESS ;wait for serial buffer to be empty
-;	cpfseq	myRs232TxProducer,ACCESS
-;	bra		commDone
-	;cdw, assume for now buffer is empty after a second
+#undefine regparity
+
+commStateReport:
+	movf	myRs232TxConsumer,w,ACCESS ;wait for serial buffer to be empty
+	cpfseq	myRs232TxProducer,ACCESS
+	bra		commDone
 #ifdef DEBUG_RS232_SPACES
 	movlw	' '
 	call	serialPutByte
@@ -290,7 +347,6 @@ commStateSetupAnswer:
 	call	serialPutByte
 	movlw	h'0a'
 	call	serialPutByte
-
 #ifdef DEBUG_RS232_SPACES
 	movlw	' '
 	call	serialPutByte
@@ -309,11 +365,9 @@ commStateSetupAnswer:
 	call	serialPutByte
 	movlw	h'0a'
 	call	serialPutByte
-
 ;end report code
 	bra		commNextState
-#undefine regparity
-	
+
 commStateWaitSend:
 	movf	myCommTimer,f,ACCESS
 	bnz		commDone
@@ -324,12 +378,6 @@ commStateSendAnswer:
 	btfss	bitTxBusy
 	bra		commDone	
 	bcf		bitTxStart
-	movlw	COMM_STATE_IDLE
-	movwf	myCommState,ACCESS
-	bra		commDone
-	
-commStateUnused7:
-;set error bit here?		
 	movlw	COMM_STATE_IDLE
 	movwf	myCommState,ACCESS
 	bra		commDone
@@ -345,9 +393,9 @@ commDone:
 #undefine commStateCheckMessageA
 #undefine commStateCheckMessageID
 #undefine commStateSetupAnswer
+#undefine commStateReport
 #undefine commStateWaitSend
 #undefine commStateSendAnswer
-#undefine commStateUnused7
 #undefine commState0			
 #undefine commState1			
 #undefine commState2			
@@ -357,7 +405,31 @@ commDone:
 #undefine commState6			
 #undefine commState7
 #undefine commNextState		
-#undefine commDone			
+#undefine commDone
+
+#undefine commIdSlaveFlags
+#undefine commIdTempSetpoint			
+#undefine commIdRemoteOverwrite		
+#undefine commIdMaxRelMod				
+#undefine commIdMaxBoilerCapacity		
+#undefine commIdRoomSetpoint			
+#undefine commIdRelModLevel			
+#undefine commIdWaterPressInCh		
+#undefine commIdDayOfWeek				
+#undefine commIdRoomTemp				
+#undefine commIdFlowWaterTemp			
+#undefine commIdDwhTemp				
+#undefine commIdOutsideTemp			
+#undefine commIdReturnWaterTemp		
+#undefine commIdDhwSetpoint			
+#undefine commIdMaxChWaterSetpoint	
+#undefine commIdRemoteOverRide		
+#undefine commStateCheckKnown			
+#undefine commReadData				
+#undefine commWriteData				
+#undefine commWriteInvalid			
+#undefine commStateCheckWrongMsgtype	
+			
 ;data
 #undefine myCommState			
 #undefine myCommTimer

@@ -158,7 +158,7 @@
 #define rxStateSample12		rxState14
 #define rxStateUnused15		rxState15	
 	
-	movf	myRxState,w,BANKED
+	movf	myRxState,w,ACCESS
 	call	Switchcase16
 	bra		rxState0
 	bra		rxState1
@@ -194,10 +194,10 @@ rxStateWaitStart:
 #endif
 	bra		rxDone
 	movlw	NUM_RX_BITS+1+1 ;first bit is startbit, and first decrement, and then check
-	movwf	myRxCounter,BANKED
+	movwf	myRxCounter,ACCESS
 	;first edge is at start of bit, so skip half a bittime
 	movlw	RX_SAMPLE_5
-	movwf	myRxState,BANKED
+	movwf	myRxState,ACCESS
 	bra		rxDone
 
 rxStateSample0:
@@ -235,7 +235,7 @@ rxStateUnused15:
 rxStoreBit:
 	;opentherm sends and receives data MSB first
 	;store bit here
-	dcfsnz	myRxCounter,f,BANKED
+	dcfsnz	myRxCounter,f,ACCESS
 	bra		rxSetIdleState	;cdw, this code does not check for stopbit
 	
 	bcf		Carry

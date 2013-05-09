@@ -93,8 +93,8 @@
 #define OUTPUT_INVERTED ;a 0 from the uC is send as 20mA, a 1 from the uC is send as 7mA
 
 #define USE_CHANNEL_0
-;define USE_CHANNEL_1
-;define USE_CHANNEL_2
+#define USE_CHANNEL_1
+#define USE_CHANNEL_2
 ;define USE_CHANNEL_3
 ;define USE_CHANNEL_4
 ;define USE_CHANNEL_5
