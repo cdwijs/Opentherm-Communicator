@@ -39,6 +39,7 @@
 		myPrescale125msec:1
 		myPrescale500msec:1
 		myPrescale500usec:1
+		myPrescaleTx:1
 	endc
 
 	cblock

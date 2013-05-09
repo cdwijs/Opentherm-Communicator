@@ -31,6 +31,74 @@
 ;    registered trademarks of The OpenTherm Association.                       *
 ;*******************************************************************************
 
+;Transmit state machine:
+; 
+;       +-----------+
+;       |Idle       |
+;       |-----------|
+;       |output=0   |
+; +---->|BitTxBusy=0|
+; |     +-----+-----+
+; |           |
+; |           |BitTxStart
+; |           |
+; |     +-----v-----+
+; |     |SendStartA |
+; |     |-----------|
+; |     |output=0   |
+; |     |BitTxBusy=1|
+; |     +-----+-----+
+; |           |
+; |           |500us
+; |           |
+; |     +-----v-----+
+; |     |SendStartB |
+; |     |-----------|
+; |     |output=1   |
+; |     |           |
+; |     +-----+-----+
+; |           |
+; |           |500us
+; |           |
+; |     +-----v-----+
+; |     |SendBitA   |
+; |     |-----------|
+; |     |output=!Bit|
+; |     |           |<---+
+; |     +-----+-----+    |
+; |           |          |
+; |           |500us     |
+; |           |          |
+; |     +-----v-----+    |
+; |     |SendBitB   |    |
+; |     |-----------|    |
+; |     |output=Bit |    |
+; |     |           |    |
+; |     +-----+-----+    |
+; |           |500us     |
+; |           |          |
+; |           |  <32 bits|
+; |           +--------->+
+; |           |32 bits   
+; |           |          
+; |     +-----v-----+    
+; |     |SendStopA  |
+; |     |-----------|
+; |     |output=1   |
+; |     |           |
+; |     +-----+-----+
+; |           |
+; |           |500us
+; |           |
+; |     +-----v-----+
+; |     |SendStopB  |
+; |     |-----------|
+; |     |output=0   |
+; |     |           |
+; |     +-----+-----+
+; |           |
+; |<----------+
+
 #define txStateIdle		txState0
 #define TX_STATE_IDLE		d'0'
 #define txStateSendStartA	txState1
@@ -41,7 +109,6 @@
 #define txStateSendStopA	txState5
 #define txStateSendStopB	txState6
 #define txStateUnused7		txState7		
-	
 	movf	myTxState,w,ACCESS
 	call	Switchcase8
 	bra		txState0
@@ -57,13 +124,13 @@ txStateIdle:
 	bcf		bitTxBusy
 #ifdef DEBUG_LOOPBACK_TEST
 	movlw	h'EF'
-	movwf	myTxBuffer+0
+	movwf	myTxBuffer+0,ACCESS
 	movlw	h'BE'
-	movwf	myTxBuffer+1
+	movwf	myTxBuffer+1,ACCESS
 	movlw	h'AD'
-	movwf	myTxBuffer+2
+	movwf	myTxBuffer+2,ACCESS
 	movlw	h'DE'
-	movwf	myTxBuffer+3
+	movwf	myTxBuffer+3,ACCESS
 #endif
 
 	btfss	bitTxStart
@@ -88,7 +155,7 @@ txStateSendStartB:
 	bcf		pinOutTx
 #endif
 	bra		txNextState
-;cdw, check polarity
+
 txStateSendBitA
 #ifdef OUTPUT_INVERTED
 	btfss	myTxBuffer+3,7
@@ -102,7 +169,7 @@ txStateSendBitA
 	bsf		pinOutTx
 #endif
 	bra		txNextState
-;cdw, check polarity
+
 txStateSendBitB
 #ifdef OUTPUT_INVERTED
 	btfss	myTxBuffer+3,7
@@ -122,11 +189,11 @@ txStateSendBitB
 	rlcf	myTxBuffer+0,f,ACCESS
 	rlcf	myTxBuffer+1,f,ACCESS
 	rlcf	myTxBuffer+2,f,ACCESS
-	rlcf	myTxBuffer+3,f,ACCESS 
+	rlcf	myTxBuffer+3,f,ACCESS
 	movlw	TX_STATE_SENDBIT_A
 	movwf	myTxState,ACCESS
 	bra		txDone
-;cdw, check polarity
+
 txStateSendStopA:
 #ifdef OUTPUT_INVERTED
 	bcf		pinOutTx
@@ -182,188 +249,3 @@ txDone:
 #undefine bitTxBusy
 #undefine bitTxStart
 #undefine pinOutTx
-
-
-#define rxStateIdle			rxState0
-#define RX_STATE_IDLE		d'0'
-#define rxStateWaitStart	rxState1
-#define rxStateSample0		rxState2
-#define rxStateSample1		rxState3
-#define RX_SAMPLE_1			d'3'
-#define rxStateSample2		rxState4
-#define rxStateSample3		rxState5
-#define rxStateSample4		rxState6
-#define rxStateSample5		rxState7
-#define RX_SAMPLE_5			d'7'
-#define rxStateSample6		rxState8
-#define rxStateSample7		rxState9
-#define rxStateSample8		rxState10
-#define rxStateSample9		rxState11
-#define rxStateSample10		rxState12
-#define rxStateSample11		rxState13
-#define rxStateSample12		rxState14
-#define rxStateUnused15		rxState15	
-	
-	movf	myRxState,w,ACCESS
-	call	Switchcase16
-	bra		rxState0
-	bra		rxState1
-	bra		rxState2
-	bra		rxState3
-	bra		rxState4
-	bra		rxState5
-	bra		rxState6
-	bra		rxState7
-	bra		rxState8
-	bra		rxState9
-	bra		rxState10
-	bra		rxState11
-	bra		rxState12
-	bra		rxState13
-	bra		rxState14
-	bra		rxState15
-
-rxStateIdle:
-	bcf		bitRxBusy
-	btfss	bitRxStart
-	bra		rxDone
-	bra		rxNextState	
-
-rxStateWaitStart:
-	bsf		bitRxBusy
-	btfss	edgeRx		;only react to an edge, not a stuck-at-active signal...
-	bra		rxDone
-#ifdef INPUT_INVERTED
-	btfsc	pinInRx
-#else
-	btfss	pinInRx
-#endif
-	bra		rxDone
-	movlw	NUM_RX_BITS+1+1 ;first bit is startbit, and first decrement, and then check
-	movwf	myRxCounter,ACCESS
-	;first edge is at start of bit, so skip half a bittime
-	movlw	RX_SAMPLE_5
-	movwf	myRxState,ACCESS
-	bra		rxDone
-
-rxStateSample0:
-rxStateSample1:
-rxStateSample2:	
-rxStateSample3:
-	btfss	edgeRx
-	bra		rxNextState
-	bra		rxErrorFastEdge
-
-rxStateSample4:
-rxStateSample5:
-rxStateSample6:
-rxStateSample7:
-	bra		rxNextState
-
-rxStateSample8:
-rxStateSample9:
-rxStateSample10:
-rxStateSample11:
-	btfss	edgeRx
-	bra		rxNextState
-	bra		rxStoreBit
-
-rxStateSample12:
-	btfss	edgeRx
-	bra		rxErrorLateEdge
-	bra		rxStoreBit
-
-rxStateUnused15:
-	;set error bit here?	
-	bra		rxSetIdleState
-
-
-rxStoreBit:
-	;opentherm sends and receives data MSB first
-	;store bit here
-	dcfsnz	myRxCounter,f,ACCESS
-	bra		rxSetIdleState	;cdw, this code does not check for stopbit
-	
-	bcf		Carry
-#ifdef INPUT_INVERTED
-	btfsc	pinInRx
-#else
-	btfss	pinInRx
-#endif
-	bsf		Carry
-	rlcf	myRxBuffer+0,f,ACCESS
-	rlcf	myRxBuffer+1,f,ACCESS
-	rlcf	myRxBuffer+2,f,ACCESS
-	rlcf	myRxBuffer+3,f,ACCESS
-
-	;not all bits received
-	movlw	RX_SAMPLE_1
-	movwf	myRxState,ACCESS
-	bra		rxDone
-
-rxErrorLateEdge:
-	;set error bit here
-	bra		rxSetIdleState
-
-rxErrorFastEdge:
-	;set error bit here
-	bra	rxSetIdleState
-rxSetIdleState:
-	movlw	RX_STATE_IDLE
-	movwf	myRxState,ACCESS
-	bra		rxDone
-
-rxNextState:
-	incf	myRxState,f,ACCESS
-rxDone:
-
-;labels
-#undefine rxStateIdle
-#undefine RX_STATE_IDLE
-#undefine rxStateWaitStart
-#undefine rxStateSample0
-#undefine rxStateSample1
-#undefine RX_SAMPLE_1
-#undefine rxStateSample2
-#undefine rxStateSample3
-#undefine rxStateSample4
-#undefine rxStateSample5
-#undefine rxStateSample6
-#undefine rxStateSample7
-#undefine rxStateSample8
-#undefine rxStateSample9
-#undefine rxStateSample10
-#undefine rxStateSample11
-#undefine rxStateSample12
-#undefine rxStateUnused15
-#undefine rxState0
-#undefine rxState1
-#undefine rxState2
-#undefine rxState3
-#undefine rxState4
-#undefine rxState5
-#undefine rxState6
-#undefine rxState7
-#undefine rxState8
-#undefine rxState9
-#undefine rxState10
-#undefine rxState11
-#undefine rxState12
-#undefine rxState13
-#undefine rxState14
-#undefine rxState15
-#undefine rxStoreBit
-#undefine rxErrorLateEdge
-#undefine rxErrorFastEdge
-#undefine rxSetIdleState
-#undefine rxNextState
-#undefine rxDone
-;data
-#undefine myRxState
-#undefine myRxCounter
-#undefine myRxBuffer
-;bits
-#undefine bitRxBusy
-#undefine bitRxStart
-#undefine pinInRx
-#undefine edgeRx
