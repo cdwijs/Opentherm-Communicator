@@ -30,62 +30,7 @@
 ;    OpenTherm,OpenTherm/Plus,OpenTherm/Lite and the OpenTherm logo are        *
 ;    registered trademarks of The OpenTherm Association.                       *
 ;*******************************************************************************
-;This state machine handles the opentherm conversation.
-;It sends the request to the thermostat, handles timeout and parity check
 
-;       +-------------+
-;       |Idle         |
-;       |-------------|
-;       |BitRxStart=1 |
-; +---->|bitTxStart=0 |
-; |     +------+------+
-; |            |bitRxBusy
-; |     +------v------+
-; |     |WaitAnswer   |
-; |     |-------------|
-; |     |bitRxStart=0 |
-; |     |             |
-; |     |             |
-; |     +------+------+
-; |            |!bitRxBusy
-; |     +------v------+
-; |     |CheckMessageA|
-; |     |-------------|
-; |     |Timer = 20 ms|
-; |     |             |
-; |     +------+------+
-; |     Error  |
-; |<-----------|
-; |            |
-; |     +------v------+
-; |     |CheckmessageB|
-; |     |-------------|
-; |     |             |
-; |     |             |
-; |     +------+------+
-; |            |
-; |     +------v------+
-; |     |SetupAnswer  |
-; |     |-------------|
-; |     |             |
-; |     |             |
-; |     +------+------+
-; |            |
-; |     +------v------+
-; |     |WaitSend     |
-; |     |-------------|
-; |     |             |
-; |     |             |
-; |     +------+------+
-; |            |Timer
-; |     +------v------+
-; |     |SendAnswer   |
-; |     |-------------|
-; |     |             |
-; |     |             |
-; |     +------+------+
-; |            |!bitTxbusy
-; +<-----------+
 
 #define TIME_COMM_RESPONSE	d'20' ;*msec
 
@@ -135,6 +80,28 @@ commJumps:
 	#define commState7			comm0State7
 	#define commNextState		comm0NextState
 	#define commDone			comm0Done
+	#define commIdSlaveFlags			comm0IdSlaveFlags
+	#define commIdTempSetpoint			comm0IdTempSetpoint
+	#define commIdRemoteOverwrite		comm0IdRemoteOverwrite
+	#define commIdMaxRelMod				comm0IdMaxRelMod
+	#define commIdMaxBoilerCapacity		comm0IdMaxBoilerCapacity
+	#define commIdRoomSetpoint			comm0IdRoomSetpoint
+	#define commIdRelModLevel			comm0IdRelModLevel
+	#define commIdWaterPressInCh		comm0IdWaterPressInCh
+	#define commIdDayOfWeek				comm0IdDayOfWeek
+	#define commIdRoomTemp				comm0IdRoomTemp
+	#define commIdFlowWaterTemp			comm0IdFlowWaterTemp
+	#define commIdDwhTemp				comm0IdDwhTemp
+	#define commIdOutsideTemp			comm0IdOutsideTemp
+	#define commIdReturnWaterTemp		comm0IdReturnWaterTemp
+	#define commIdDhwSetpoint			comm0IdDhwSetpoint
+	#define commIdMaxChWaterSetpoint	comm0IdMaxChWaterSetpoint
+	#define commIdRemoteOverRide		comm0IdRemoteOverRide
+	#define commStateCheckKnown			comm0StateCheckKnown
+	#define commReadData				comm0ReadData
+	#define commWriteData				comm0WriteData
+	#define commWriteInvalid			comm0WriteInvalid
+	#define commStateCheckWrongMsgtype	comm0StateCheckWrongMsgtype
 	;data
 	#define myCommState			myComm0State
 	#define myCommTimer			myComm0Timer
@@ -147,7 +114,7 @@ commJumps:
 	#define bitRxBusy			bitRx0Busy
 	#define bitTxStart			bitTx0Start
 	#define bitTxBusy			bitTx0Busy
-	#include ot-comm-common.inc
+	#include ot-comm-states.inc
 #endif
 
 #ifdef USE_CHANNEL_1
@@ -162,6 +129,28 @@ commJumps:
 	#define commState7			comm1State7
 	#define commNextState		comm1NextState
 	#define commDone			comm1Done
+	#define commIdSlaveFlags			comm1IdSlaveFlags
+	#define commIdTempSetpoint			comm1IdTempSetpoint
+	#define commIdRemoteOverwrite		comm1IdRemoteOverwrite
+	#define commIdMaxRelMod				comm1IdMaxRelMod
+	#define commIdMaxBoilerCapacity		comm1IdMaxBoilerCapacity
+	#define commIdRoomSetpoint			comm1IdRoomSetpoint
+	#define commIdRelModLevel			comm1IdRelModLevel
+	#define commIdWaterPressInCh		comm1IdWaterPressInCh
+	#define commIdDayOfWeek				comm1IdDayOfWeek
+	#define commIdRoomTemp				comm1IdRoomTemp
+	#define commIdFlowWaterTemp			comm1IdFlowWaterTemp
+	#define commIdDwhTemp				comm1IdDwhTemp
+	#define commIdOutsideTemp			comm1IdOutsideTemp
+	#define commIdReturnWaterTemp		comm1IdReturnWaterTemp
+	#define commIdDhwSetpoint			comm1IdDhwSetpoint
+	#define commIdMaxChWaterSetpoint	comm1IdMaxChWaterSetpoint
+	#define commIdRemoteOverRide		comm1IdRemoteOverRide
+	#define commStateCheckKnown			comm1StateCheckKnown
+	#define commReadData				comm1ReadData
+	#define commWriteData				comm1WriteData
+	#define commWriteInvalid			comm1WriteInvalid
+	#define commStateCheckWrongMsgtype	comm1StateCheckWrongMsgtype
 	;data
 	#define myCommState			myComm1State
 	#define myCommTimer			myComm1Timer
@@ -174,12 +163,12 @@ commJumps:
 	#define bitRxBusy			bitRx1Busy
 	#define bitTxStart			bitTx1Start
 	#define bitTxBusy			bitTx1Busy
-	#include ot-comm-common.inc
+	#include ot-comm-states.inc
 #endif
 
 #ifdef USE_CHANNEL_2
 	;labels
-	#define commState0			comm2State0
+	#define commState0			comm2state0
 	#define commState1			comm2State1
 	#define commState2			comm2State2
 	#define commState3			comm2State3
@@ -189,6 +178,28 @@ commJumps:
 	#define commState7			comm2State7
 	#define commNextState		comm2NextState
 	#define commDone			comm2Done
+	#define commIdSlaveFlags			comm2IdSlaveFlags
+	#define commIdTempSetpoint			comm2IdTempSetpoint
+	#define commIdRemoteOverwrite		comm2IdRemoteOverwrite
+	#define commIdMaxRelMod				comm2IdMaxRelMod
+	#define commIdMaxBoilerCapacity		comm2IdMaxBoilerCapacity
+	#define commIdRoomSetpoint			comm2IdRoomSetpoint
+	#define commIdRelModLevel			comm2IdRelModLevel
+	#define commIdWaterPressInCh		comm2IdWaterPressInCh
+	#define commIdDayOfWeek				comm2IdDayOfWeek
+	#define commIdRoomTemp				comm2IdRoomTemp
+	#define commIdFlowWaterTemp			comm2IdFlowWaterTemp
+	#define commIdDwhTemp				comm2IdDwhTemp
+	#define commIdOutsideTemp			comm2IdOutsideTemp
+	#define commIdReturnWaterTemp		comm2IdReturnWaterTemp
+	#define commIdDhwSetpoint			comm2IdDhwSetpoint
+	#define commIdMaxChWaterSetpoint	comm2IdMaxChWaterSetpoint
+	#define commIdRemoteOverRide		comm2IdRemoteOverRide
+	#define commStateCheckKnown			comm2StateCheckKnown
+	#define commReadData				comm2ReadData
+	#define commWriteData				comm2WriteData
+	#define commWriteInvalid			comm2WriteInvalid
+	#define commStateCheckWrongMsgtype	comm2StateCheckWrongMsgtype
 	;data
 	#define myCommState			myComm2State
 	#define myCommTimer			myComm2Timer
@@ -201,7 +212,7 @@ commJumps:
 	#define bitRxBusy			bitRx2Busy
 	#define bitTxStart			bitTx2Start
 	#define bitTxBusy			bitTx2Busy
-	#include ot-comm-common.inc
+	#include ot-comm-states.inc
 #endif
 
 #ifdef USE_CHANNEL_3
@@ -216,6 +227,28 @@ commJumps:
 	#define commState7			comm3State7
 	#define commNextState		comm3NextState
 	#define commDone			comm3Done
+	#define commIdSlaveFlags			comm3IdSlaveFlags
+	#define commIdTempSetpoint			comm3IdTempSetpoint
+	#define commIdRemoteOverwrite		comm3IdRemoteOverwrite
+	#define commIdMaxRelMod				comm3IdMaxRelMod
+	#define commIdMaxBoilerCapacity		comm3IdMaxBoilerCapacity
+	#define commIdRoomSetpoint			comm3IdRoomSetpoint
+	#define commIdRelModLevel			comm3IdRelModLevel
+	#define commIdWaterPressInCh		comm3IdWaterPressInCh
+	#define commIdDayOfWeek				comm3IdDayOfWeek
+	#define commIdRoomTemp				comm3IdRoomTemp
+	#define commIdFlowWaterTemp			comm3IdFlowWaterTemp
+	#define commIdDwhTemp				comm3IdDwhTemp
+	#define commIdOutsideTemp			comm3IdOutsideTemp
+	#define commIdReturnWaterTemp		comm3IdReturnWaterTemp
+	#define commIdDhwSetpoint			comm3IdDhwSetpoint
+	#define commIdMaxChWaterSetpoint	comm3IdMaxChWaterSetpoint
+	#define commIdRemoteOverRide		comm3IdRemoteOverRide
+	#define commStateCheckKnown			comm3StateCheckKnown
+	#define commReadData				comm3ReadData
+	#define commWriteData				comm3WriteData
+	#define commWriteInvalid			comm3WriteInvalid
+	#define commStateCheckWrongMsgtype	comm3StateCheckWrongMsgtype
 	;data
 	#define myCommState			myComm3State
 	#define myCommTimer			myComm3Timer
@@ -228,7 +261,7 @@ commJumps:
 	#define bitRxBusy			bitRx3Busy
 	#define bitTxStart			bitTx3Start
 	#define bitTxBusy			bitTx3Busy
-	#include ot-comm-common.inc
+	#include ot-comm-states.inc
 #endif
 	return
 

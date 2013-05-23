@@ -37,6 +37,7 @@ file_009=.
 file_010=.
 file_011=.
 file_012=.
+file_013=.
 [GENERATED_FILES]
 file_000=no
 file_001=no
@@ -51,6 +52,7 @@ file_009=no
 file_010=no
 file_011=no
 file_012=no
+file_013=no
 [OTHER_FILES]
 file_000=no
 file_001=no
@@ -65,6 +67,7 @@ file_009=no
 file_010=no
 file_011=no
 file_012=no
+file_013=no
 [FILE_INFO]
 file_000=opentherm-test1.X\ot-communicator.asm
 file_001=opentherm-test1.X\manchester.inc
@@ -74,11 +77,12 @@ file_004=opentherm-test1.X\P18F43K22.INC
 file_005=opentherm-test1.X\config.inc
 file_006=opentherm-test1.X\io.inc
 file_007=opentherm-test1.X\timing.inc
-file_008=opentherm-test1.X\ot-comm-common.inc
-file_009=opentherm-test1.X\interrupt.inc
-file_010=opentherm-test1.X\manchester-common.inc
-file_011=opentherm-test1.X\P18F45K22.INC
-file_012=opentherm-test1.X\serial.inc
+file_008=opentherm-test1.X\interrupt.inc
+file_009=opentherm-test1.X\P18F45K22.INC
+file_010=opentherm-test1.X\serial.inc
+file_011=opentherm-test1.X\ot-comm-states.inc
+file_012=opentherm-test1.X\manchester-Rx-states.inc
+file_013=opentherm-test1.X\manchester-Tx-states.inc
 [SUITE_INFO]
 suite_guid={6B3DAA78-59C1-46DD-B6AA-DBDAE4E06484}
 suite_state=generate-absolute-code

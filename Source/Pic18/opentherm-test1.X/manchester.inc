@@ -105,184 +105,6 @@
 ;The state machine syncronizes with the tramsitions 
 ;in the middle of the received bits
 
-
-;Transmit state machine:
-; 
-;       +-----------+
-;       |Idle       |
-;       |-----------|
-;       |output=0   |
-; +---->|BitTxBusy=0|
-; |     +-----+-----+
-; |           |
-; |           |BitTxStart
-; |           |
-; |     +-----v-----+
-; |     |SendStartA |
-; |     |-----------|
-; |     |output=0   |
-; |     |BitTxBusy=1|
-; |     +-----+-----+
-; |           |
-; |           |500us
-; |           |
-; |     +-----v-----+
-; |     |SendStartB |
-; |     |-----------|
-; |     |output=1   |
-; |     |           |
-; |     +-----+-----+
-; |           |
-; |           |500us
-; |           |
-; |     +-----v-----+
-; |     |SendBitA   |
-; |     |-----------|
-; |     |output=!Bit|
-; |     |           |<---+
-; |     +-----+-----+    |
-; |           |          |
-; |           |500us     |
-; |           |          |
-; |     +-----v-----+    |
-; |     |SendBitB   |    |
-; |     |-----------|    |
-; |     |output=Bit |    |
-; |     |           |    |
-; |     +-----+-----+    |
-; |           |500us     |
-; |           |          |
-; |           |  <32 bits|
-; |           +--------->+
-; |           |32 bits   
-; |           |          
-; |     +-----v-----+    
-; |     |SendStopA  |
-; |     |-----------|
-; |     |output=1   |
-; |     |           |
-; |     +-----+-----+
-; |           |
-; |           |500us
-; |           |
-; |     +-----v-----+
-; |     |SendStopB  |
-; |     |-----------|
-; |     |output=0   |
-; |     |           |
-; |     +-----+-----+
-; |           |
-; |<----------+
-
-
-;Receive state machine
-; 
-;       +-----------+
-;       |Idle       |
-;       |-----------|
-;       |           |
-; +---->|BitRxBusy=0|<---------+
-; |     +-----+-----+          |
-; |           |BitStartRx      |
-; |     +-----v-----+          |
-; |     |WaitStart  |          |
-; |     |-----------|          |
-; |     |           |          |
-; |     |BitRxBusy=1|          |
-; |     +-----------+          |
-; |BitRxAbort |                |
-; |<----------+                |
-; |           |Edge            |
-; |           |<---------------|------+
-; |     +-----v-----+          |      |
-; |     |Sample 1   |          |      |
-; |     |-----------|          |      |
-; |32bit|           |edge      |      |
-; <-----+           +---->Error+      |
-;       +-----+-----+          |      |
-;             |100us           |      |
-;       +-----v-----+          |      |
-;       |Sample 2   |          |      |
-;       |-----------|          |      |
-;       |           |edge      |      |
-;       |           +---->Error+      |
-;       +-----+-----+          |      |
-;             |100us           |      |
-;       +-----v-----+          |      |
-;       |Sample 3   |          |      |
-;       |-----------|          |      |
-;       |           |Edge      |      |
-;       |           +---->Error+      |
-;       +-----+-----+                 |
-;             |100us                  |
-;       +-----v-----+                 |
-;       |Sample 4   |                 |
-;       |-----------|                 |
-;       |           |                 |
-;       |           |                 |
-;       +-----------+                 |
-;             |100us                  |
-;       +-----v-----+                 |
-;       |Sample 5   |                 |
-;       |-----------|                 |
-;       |           |                 |
-;       |           |                 |
-;       +-----+-----+                 |
-;             |100us                  |
-;       +-----v-----+                 |
-;       |Sample 6   |                 |
-;       |-----------|                 |
-;       |           |                 |
-;       |           |                 |
-;       +-----+-----+                 |
-;             |100us                  |
-;       +-----v-----+                 +
-;       |Sample 7   |                 |
-;       |-----------|                 |
-;       |           |                 |
-;       |           |                 |
-;       +-----+-----+                 |
-;             |100us                  |
-;       +-----v-----+                 |
-;       |Sample 8   |                 |
-;       |-----------|                 |
-;       |           |Edge             |
-;       |           +---->StoreBit+-->|
-;       +-----+-----+                 |
-;             |100us                  |
-;       +-----v-----+                 |
-;       |Sample 9   |                 |
-;       |-----------|                 |
-;       |           |Edge             |
-;       |           +---->StoreBit+-->|
-;       +-----+-----+                 |
-;             |                       |
-;       +-----v-----+                 |
-;       |Sample 10  |                 |
-;       |-----------|                 |
-;       |           |Edge             |
-;       |           +---->Storebit+-->|
-;       +-----+-----+                 |
-;             |100us                  |
-;       +-----v-----+                 |
-;       |Sample 11  |                 |
-;       |-----------|                 |
-;       |           |Edge             |
-;       |           +---->Storebit+-->|
-;       +-----+-----+                 |
-;             |100us                  |
-;       +-----v-----+                 |
-;       |Sample 12  |                 |
-;       |-----------|                 |
-;       |           |Edge             |
-;       |           +---->StoreBit+-->+
-;       +-----+-----+
-;             |No Edge
-;       +-----v-----+
-;       |Error      |
-;       |State=idle |
-;       +-----------+
-
 #define NUM_TX_BITS	d'32'
 #define NUM_RX_BITS d'32'
 
@@ -345,13 +167,6 @@ int100usec:
 	movff	myPorteNow,myPortePrevious
 #endif
 
-#define DEBUG_EDGES
-#ifdef DEBUG_EDGES
-	bcf		LATB,1
-	btfsc	myPortaEdge,0
-	bsf		LATB,1
-#endif
-
 	;debug verify interrupt timing
 	movlw	PRESCALE_1MS
 	decfsz	myPrescale1msec,f,ACCESS
@@ -400,13 +215,20 @@ timercomm3done:
 #endif
 timerDone:
 	;end debug
-txJump:
-	;this only works correctly for tx0...
-	decfsz	myPrescale500usec,f,ACCESS
-	bra		tx0Done
-	movlw	PRESCALE_500US
-	movwf	myPrescale500usec
+	;run each transmitter @500usec
+	movf	myPrescaleTx,w,ACCESS
+	call	Switchcase8
+	bra		tx0Jump		;0	run 0&1
+	bra		tx2Jump		;1	run 2&3
+	bra		tx4Jump		;2	run 4&5
+	bra		tx6Jump		;3	run 6&7
+	clrf	myPrescaleTx;4	run nothing
+	clrf	myPrescaleTx;5	run nothing
+	clrf	myPrescaleTx;6	run nothing
+	clrf	myPrescaleTx;7	run nothing
+	bra		txJumpsNoInc
 
+tx0Jump:
 #ifdef USE_CHANNEL_0
 	;labels
 	#define txState0		tx0State0	;transmit
@@ -427,6 +249,73 @@ txJump:
 	#define bitTxBusy		bitTx0Busy
 	#define bitTxStart		bitTx0Start
 	#define pinOutTx		pinOutTx0
+	#include manchester-Tx-States.inc
+#endif
+
+tx1Jump:
+#ifdef USE_CHANNEL_1
+	;labels
+	#define txState0		tx1State0
+	#define txState1		tx1State1
+	#define txState2		tx1State2
+	#define txState3		tx1State3
+	#define txState4		tx1State4
+	#define txState5		tx1State5
+	#define txState6		tx1State6
+	#define txState7		tx1State7
+	#define txNextState		tx1NextState
+	#define txDone			tx1Done
+	;data
+	#define myTxState		myTx1State
+	#define myTxBuffer		myTx1Buffer
+	#define myTxCounter		myTx1Counter
+	;bits
+	#define bitTxBusy		bitTx1Busy
+	#define bitTxStart		bitTx1Start
+	#define pinOutTx		pinOutTx1
+	#include manchester-Tx-States.inc
+#endif
+	bra	txjumpsDone
+
+tx2Jump:
+#ifdef USE_CHANNEL_2
+	;labels
+	#define txState0		tx2State0
+	#define txState1		tx2State1
+	#define txState2		tx2State2
+	#define txState3		tx2State3
+	#define txState4		tx2State4
+	#define txState5		tx2State5
+	#define txState6		tx2State6
+	#define txState7		tx2State7
+	#define txNextState		tx2NextState
+	#define txDone			tx2Done
+	;data
+	#define myTxState		myTx2State
+	#define myTxBuffer		myTx2Buffer
+	#define myTxCounter		myTx2Counter
+	;bits
+	#define bitTxBusy		bitTx2Busy
+	#define bitTxStart		bitTx2Start
+	#define pinOutTx		pinOutTx2
+	#include manchester-Tx-States.inc
+#endif
+
+tx3Jump:
+	bra	txjumpsDone
+tx4Jump:
+tx5Jump:
+	bra	txjumpsDone
+tx6Jump:
+tx7Jump:
+	bra	txjumpsDone
+
+txjumpsDone:
+	incf	myPrescaleTx,f,ACCESS
+txJumpsNoInc:
+	
+
+#ifdef USE_CHANNEL_0
 	;labels
 	#define rxState0			rx0State0	;receive
 	#define rxState1			rx0State1
@@ -459,29 +348,10 @@ txJump:
 	#define bitRxStart			bitRx0Start
 	#define pinInRx				pinInRx0
 	#define edgeRx				edgeRx0
-	#include manchester-common.inc
+	#include manchester-Rx-States.inc
 #endif
 
 #ifdef USE_CHANNEL_1
-	;labels
-	#define txState0		tx1State0
-	#define txState1		tx1State1
-	#define txState2		tx1State2
-	#define txState3		tx1State3
-	#define txState4		tx1State4
-	#define txState5		tx1State5
-	#define txState6		tx1State6
-	#define txState7		tx1State7
-	#define txNextState		tx1NextState
-	#define txDone			tx1Done
-	;data
-	#define myTxState		myTx1State
-	#define myTxBuffer		myTx1Buffer
-	#define myTxCounter		myTx1Counter
-	;bits
-	#define bitTxBusy		bitTx1Busy
-	#define bitTxStart		bitTx1Start
-	#define pinOutTx		pinOutTx1
 	;labels
 	#define rxState0			rx1State0	;receive
 	#define rxState1			rx1State1
@@ -514,29 +384,10 @@ txJump:
 	#define bitRxStart			bitRx1Start
 	#define pinInRx				pinInRx1
 	#define edgeRx				edgeRx1
-	#include manchester-common.inc
+	#include manchester-Rx-States.inc
 #endif
 
 #ifdef USE_CHANNEL_2
-	;labels
-	#define txState0		tx2State0
-	#define txState1		tx2State1
-	#define txState2		tx2State2
-	#define txState3		tx2State3
-	#define txState4		tx2State4
-	#define txState5		tx2State5
-	#define txState6		tx2State6
-	#define txState7		tx2State7
-	#define txNextState		tx2NextState
-	#define txDone			tx2Done
-	;data
-	#define myTxState		myTx2State
-	#define myTxBuffer		myTx2Buffer
-	#define myTxCounter		myTx2Counter
-	;bits
-	#define bitTxBusy		bitTx2Busy
-	#define bitTxStart		bitTx2Start
-	#define pinOutTx		pinOutTx2
 	;labels
 	#define rxState0			rx2State0	;receive
 	#define rxState1			rx2State1
@@ -568,8 +419,8 @@ txJump:
 	#define bitRxBusy			bitRx2Busy
 	#define bitRxStart			bitRx2Start
 	#define pinInRx				pinInRx2
-	#define edgeRx				edgeRx2
-	#include manchester-common.inc
+	#define edgeRx				edgeRx2	
+	#include manchester-Rx-States.inc
 #endif
 
 	;timing check

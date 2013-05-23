@@ -89,9 +89,5 @@ timingInit:
 	movlw	PRESCALE_125MS
 	movwf	myPrescale125msec		
 	movlw	PRESCALE_500MS
-	movwf	myPrescale500msec
-
-	movlw	PRESCALE_500US
-	movwf	myPrescale500usec
-		
+	movwf	myPrescale500msec		
 	return

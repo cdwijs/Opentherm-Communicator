@@ -38,7 +38,7 @@
 		myPrescale1msec:1		;timing
 		myPrescale125msec:1
 		myPrescale500msec:1
-		myPrescale500usec:1
+		myPrescaleTx
 	endc
 
 	cblock

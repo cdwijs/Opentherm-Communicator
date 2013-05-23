@@ -92,13 +92,13 @@
 #define INPUT_INVERTED	;>11V is seen by the uC as a 0, <11V is seen by the uC as a 1 
 #define OUTPUT_INVERTED ;a 0 from the uC is send as 20mA, a 1 from the uC is send as 7mA
 
-#define USE_CHANNEL_0
+;define USE_CHANNEL_0
 ;define USE_CHANNEL_1
 ;define USE_CHANNEL_2
 ;define USE_CHANNEL_3
 ;define USE_CHANNEL_4
 ;define USE_CHANNEL_5
-;define USE_CHANNEL_6
+#define USE_CHANNEL_6
 ;define USE_CHANNEL_7
 
 #ifdef USE_CHANNEL_0
@@ -173,5 +173,5 @@ ioInit:
 	movwf	PORTE,ACCESS
 	movlw	INIT_TRISE
 	movwf	TRISE,ACCESS
-	movlb	d'0'
+	movlb	BANK_RAM_0
 	return
