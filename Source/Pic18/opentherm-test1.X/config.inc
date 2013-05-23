@@ -33,7 +33,7 @@
 #define Carry	STATUS,C
 #define BANK_RAM_0	d'0'
 #define BANK_SFR	d'15'
-
+;*** P18F2x4xK22 ***
 #ifdef  __18F23K22
 	#include P18F23K22.INC
 	#define P18F2x4xK22
@@ -120,5 +120,63 @@
 	CONFIG	EBTR0 = OFF			;Block 0 (000200-000FFFh) not protected from table reads executed in other blocks
 	CONFIG	EBTR1 = OFF			;Block 1 (001000-001FFFh) not protected from table reads executed in other blocks
 	CONFIG	EBTRB = OFF			;Boot Block (000000-0001FFh) not protected from table reads executed in other blocks
+#endif
+;*** P18F2455/2550/4455/4550 ***
+
+#ifdef __18F4550
+	#include P18F4550.INC
+	#define P18F2455_2550_4455_4550
+
+	CONFIG	PLLDIV = 1			;No prescale (4 MHz oscillator input drives PLL directly)
+	CONFIG	CPUDIV = OSC1_PLL2	;[Primary Oscillator Src: /1][96 MHz PLL Src: /2]
+	CONFIG	USBDIV = 1			;USB clock source comes directly from the primary oscillator block with no postscale
+	CONFIG	FOSC = INTOSC_HS	;Internal oscillator, HS oscillator used by USB (INTHS)
+	CONFIG	FCMEN = OFF			;Fail-Safe Clock Monitor disabled
+	CONFIG	IESO = OFF			;Oscillator Switchover mode disabled
+	CONFIG	PWRT = OFF			;PWRT disabled
+	CONFIG	BOR = ON			;Brown-out Reset enabled in hardware only (SBOREN is disabled)
+	CONFIG	BORV = 3			;Minimum setting
+	CONFIG	VREGEN = OFF		;USB voltage regulator disabled
+#ifdef __DEBUG
+	CONFIG	WDT = OFF			;WDT disabled (control is placed on the SWDTEN bit)
+#else
+	CONFIG	WDT = ON			;WDT enabled
+#endif
+	CONFIG	WDTPS = 32768		;1:32768
+	CONFIG	CCP2MX = ON			;CCP2 input/output is multiplexed with RC1
+	CONFIG	PBADEN = OFF		;PORTB<4:0> pins are configured as digital I/O on Reset
+	CONFIG	LPT1OSC = OFF		;Timer1 configured for higher power operation
+	CONFIG	MCLRE = ON			;MCLR pin enabled; RE3 input pin disabled
+	CONFIG	STVREN = ON			;Stack full/underflow will cause Reset
+#ifdef __DEBUG
+	CONFIG	LVP = OFF			;Single-Supply ICSP disabled
+#else
+	CONFIG	LVP = ON			;Single-Supply ICSP enabled
+#endif
+	CONFIG	ICPRT = OFF			;ICPORT disabled
+	CONFIG	XINST = OFF			;Instruction set extension and Indexed Addressing mode disabled (Legacy mode)
+#ifdef __DEBUG
+	CONFIG	DEBUG = ON			;Background debugger enabled, RB6 and RB7 are dedicated to In-Circuit Debug
+#else
+	CONFIG	DEBUG = OFF			;Background debugger disabled, RB6 and RB7 configured as general purpose I/O pins
+#endif
+	CONFIG	CP0 = OFF			;Block 0 (000800-001FFFh) is not code-protected
+	CONFIG	CP1 = OFF			;Block 1 (002000-003FFFh) is not code-protected
+	CONFIG	CP2 = OFF			;Block 2 (004000-005FFFh) is not code-protected
+	CONFIG	CP3 = OFF			;Block 3 (006000-007FFFh) is not code-protected
+	CONFIG	CPB = OFF			;Boot block (000000-0007FFh) is not code-protected
+	CONFIG	CPD = OFF			;Data EEPROM is not code-protected
+	CONFIG	WRT0 = OFF			;Block 0 (000800-001FFFh) is not write-protected
+	CONFIG	WRT1 = OFF			;Block 1 (002000-003FFFh) is not write-protected
+	CONFIG	WRT2 = OFF			;Block 2 (004000-005FFFh) is not write-protected
+	CONFIG	WRT3 = OFF			;Block 3 (006000-007FFFh) is not write-protected
+	CONFIG	WRTC = OFF			;Configuration registers (300000-3000FFh) are not write-protected
+	CONFIG	WRTB = OFF			;Boot block (000000-0007FFh) is not write-protected
+	CONFIG	WRTD = OFF			;Data EEPROM is not write-protected
+	CONFIG  EBTR0 = OFF			;Block 0 (000800-001FFFh) is not protected from table reads executed in other blocks	
+	CONFIG	EBTR1 = OFF			;Block 1 (002000-003FFFh) is not protected from table reads executed in other blocks
+	CONFIG	EBTR2 = OFF			;Block 2 (004000-005FFFh) is not protected from table reads executed in other blocks
+	CONFIG	EBTR3 = OFF			;Block 3 (006000-007FFFh) is not protected from table reads executed in other blocks
+	CONFIG	EBTRB = OFF			;Boot block (000000-0007FFh) is not protected from table reads executed in other blocks
 #endif
 

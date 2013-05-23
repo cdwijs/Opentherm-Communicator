@@ -99,17 +99,17 @@
 ; |           |
 ; |<----------+
 
-#define txStateIdle		txState0
+#define txStateIdle			txState0
 #define TX_STATE_IDLE		d'0'
 #define txStateSendStartA	txState1
 #define txStateSendStartB	txState2
 #define txStateSendBitA		txState3
 #define TX_STATE_SENDBIT_A	d'3'
-#define txStateSendBitB	txState4
+#define txStateSendBitB		txState4
 #define txStateSendStopA	txState5
 #define txStateSendStopB	txState6
 #define txStateUnused7		txState7		
-	movf	myTxState,w,ACCESS
+	movf	myTxState,w,BANKED
 	call	Switchcase8
 	bra		txState0
 	bra		txState1
@@ -121,103 +121,92 @@
 	bra		txState7
 
 txStateIdle:
-	bcf		bitTxBusy
-#ifdef DEBUG_LOOPBACK_TEST
-	movlw	h'EF'
-	movwf	myTxBuffer+0,ACCESS
-	movlw	h'BE'
-	movwf	myTxBuffer+1,ACCESS
-	movlw	h'AD'
-	movwf	myTxBuffer+2,ACCESS
-	movlw	h'DE'
-	movwf	myTxBuffer+3,ACCESS
-#endif
-
-	btfss	bitTxStart
+	bcf		bitTxBusy,BANKED
+	btfss	bitTxStart,BANKED
 	bra		txDone
 	bra		txNextState
 
 txStateSendStartA:
 #ifdef OUTPUT_INVERTED
-	bcf		pinOutTx
+	bcf		pinOutTx,ACCESS
 #else
-	bsf		pinOutTx
+	bsf		pinOutTx,ACCESS
 #endif
 	movlw	NUM_TX_BITS
-	movwf	myTxCounter,ACCESS
-	bsf		bitTxBusy
+	movwf	myTxCounter,BANKED
+	bsf		bitTxBusy,BANKED
 	bra		txNextState
 
 txStateSendStartB:
 #ifdef OUTPUT_INVERTED
-	bsf		pinOutTx	
+	bsf		pinOutTx,ACCESS	
 #else
-	bcf		pinOutTx
+	bcf		pinOutTx,ACCESS
 #endif
 	bra		txNextState
 
 txStateSendBitA
 #ifdef OUTPUT_INVERTED
-	btfss	myTxBuffer+3,7
-	bsf		pinOutTx	;invert highest bit to output pin
-	btfsc	myTxBuffer+3,7
-	bcf		pinOutTx
+	btfss	myTxBuffer+3,7,BANKED
+	bsf		pinOutTx,ACCESS	;invert highest bit to output pin
+	btfsc	myTxBuffer+3,7,BANKED
+	bcf		pinOutTx,ACCESS
 #else
-	btfss	myTxBuffer+3,7
-	bcf		pinOutTx
-	btfsc	myTxBuffer+3,7
-	bsf		pinOutTx
+	btfss	myTxBuffer+3,7,BANKED
+	bcf		pinOutTx,ACCESS
+	btfsc	myTxBuffer+3,7,BANKED
+	bsf		pinOutTx,ACCESS
 #endif
 	bra		txNextState
 
 txStateSendBitB
 #ifdef OUTPUT_INVERTED
-	btfss	myTxBuffer+3,7
-	bcf		pinOutTx	;copy highest bit to output pin
-	btfsc	myTxBuffer+3,7
-	bsf		pinOutTx
+	btfss	myTxBuffer+3,7,BANKED
+	bcf		pinOutTx,ACCESS	;copy highest bit to output pin
+	btfsc	myTxBuffer+3,7,BANKED
+	bsf		pinOutTx,ACCESS
 #else
-	btfss	myTxBuffer+3,7
-	bsf		pinOutTx
-	btfsc	myTxBuffer+3,7
-	bcf		pinOutTx	
+	btfss	myTxBuffer+3,7,BANKED
+	bsf		pinOutTx,ACCESS
+	btfsc	myTxBuffer+3,7,BANKED
+	bcf		pinOutTx,ACCESS	
 #endif
-	dcfsnz	myTxCounter,f,ACCESS
+	dcfsnz	myTxCounter,f,BANKED
 	bra		txNextState
 
 	bcf		Carry
-	rlcf	myTxBuffer+0,f,ACCESS
-	rlcf	myTxBuffer+1,f,ACCESS
-	rlcf	myTxBuffer+2,f,ACCESS
-	rlcf	myTxBuffer+3,f,ACCESS 
+	rlcf	myTxBuffer+0,f,BANKED
+	rlcf	myTxBuffer+1,f,BANKED
+	rlcf	myTxBuffer+2,f,BANKED
+	rlcf	myTxBuffer+3,f,BANKED
 	movlw	TX_STATE_SENDBIT_A
-	movwf	myTxState,ACCESS
+	movwf	myTxState,BANKED
 	bra		txDone
 
 txStateSendStopA:
 #ifdef OUTPUT_INVERTED
-	bcf		pinOutTx
+	bcf		pinOutTx,ACCESS
 #else
-	bsf		pinOutTx	
+	bsf		pinOutTx,ACCESS
 #endif
 	bra		txNextState
-;cdw, check polarity
+
 txStateSendStopB:
 #ifdef OUTPUT_INVERTED
-	bsf		pinOutTx
+	bsf		pinOutTx,ACCESS
 #else
-	bcf		pinOutTx
+	bcf		pinOutTx,ACCESS
 #endif
 	movlw	TX_STATE_IDLE
-	movwf	myTxState,ACCESS
+	movwf	myTxState,BANKED
 	bra		txDone
 
 txStateUnused7:
-	clrf 	myTxState,ACCESS ;should never happen, set an error bit here?
+	clrf 	myTxState,BANKED ;should never happen, set an error bit here?
 	bra txDone
 
 txNextState:
-	incf	myTxState,f,ACCESS
+	incf	myTxState,f,BANKED
 txDone:
 
 ;labels

@@ -116,7 +116,7 @@ Switchcase8:
 		andlw	h'07'
 Switchcase16:
 		andlw	h'0F'
-        rlncf   WREG
+        rlncf   WREG ;cdw, does not work when access or banked is specified?
         addwf   TOSL
         movlw   0
         addwfc  TOSH
@@ -125,7 +125,7 @@ Switchcase16:
 
 ;jumptable StateTx1
 int100usec:
-	bcf	PIR1,TMR2IF
+	bcf	PIR1,TMR2IF,ACCESS
 	;sample input, edge detect
 #ifdef INPUTS_ON_PORTA
 	#ifdef DEBUG_LOOPBACK_TEST
@@ -133,99 +133,119 @@ int100usec:
 	#else
 		movff	PORTA,myPortaNow
 	#endif
-	movf	myPortaNow,w,ACCESS
-	xorwf	myPortaPrevious,w,ACCESS
-	movwf	myPortaEdge
+	movf	myPortaNow,w,BANKED
+	xorwf	myPortaPrevious,w,BANKED
+	movwf	myPortaEdge,BANKED
 	movff	myPortaNow,myPortaPrevious
 #endif
 #ifdef INPUTS_ON_PORTB
 	movff	PORTB,myPortbNow
-	movf	myPortbNow,w,ACCESS
-	xorwf	myPortbPrevious,w,ACCESS
-	movwf	myPortbEdge
+	movf	myPortbNow,w,BANKED
+	xorwf	myPortbPrevious,w,BANKED
+	movwf	myPortbEdge,BANKED
 	movff	myPortbNow,myPortbPrevious
 #endif
 #ifdef INPUTS_ON_PORTC
 	movff	PORTC,myPortcNow
-	movf	myPortcNow,w,ACCESS
-	xorwf	myPortcPrevious,w,ACCESS
-	movwf	myPortcEdge
+	movf	myPortcNow,w,BANKED
+	xorwf	myPortcPrevious,w,BANKED
+	movwf	myPortcEdge,BANKED
 	movff	myPortcNow,myPortcPrevious
 #endif
 #ifdef INPUTS_ON_PORTD
 	movff	PORTD,myPortdNow
-	movf	myPortdNow,w,ACCESS
-	xorwf	myPortdPrevious,w,ACCESS
-	movwf	myPortdEdge
+	movf	myPortdNow,w,BANKED
+	xorwf	myPortdPrevious,w,BANKED
+	movwf	myPortdEdge,BANKED
 	movff	myPortdNow,myPortdPrevious
 #endif
 #ifdef INPUTS_ON_PORTE
 	movff	PORTE,myPorteNow
-	movf	myPorteNow,w,ACCESS
-	xorwf	myPortePrevious,w,ACCESS
-	movwf	myPorteEdge
+	movf	myPorteNow,w,BANKED
+	xorwf	myPortePrevious,w,BANKED
+	movwf	myPorteEdge,BANKED
 	movff	myPorteNow,myPortePrevious
 #endif
 
 	;debug verify interrupt timing
 	movlw	PRESCALE_1MS
-	decfsz	myPrescale1msec,f,ACCESS
+	decfsz	myPrescale1msec,f,BANKED
 	bra		timerDone	
-	movwf	myPrescale1msec
+	movwf	myPrescale1msec,BANKED
 	;here 1msec has passed
 ;cdw, move timers to better place
 #ifdef USE_CHANNEL_0
-	movf	myComm0Timer,f,ACCESS
+	movf	myComm0Timer,f,BANKED
 	bz		timercomm0done
-	decf	myComm0Timer,f,ACCESS
+	decf	myComm0Timer,f,BANKED
 timercomm0done:
 #endif
 #ifdef USE_CHANNEL_1
-	movf	myComm1Timer,f,ACCESS
+	movf	myComm1Timer,f,BANKED
 	bz		timercomm1done
-	decf	myComm1Timer,f,ACCESS
+	decf	myComm1Timer,f,BANKED
 timercomm1done:
 #endif
 #ifdef USE_CHANNEL_2
-	movf	myComm2Timer,f,ACCESS
+	movf	myComm2Timer,f,BANKED
 	bz		timercomm2done
-	decf	myComm2Timer,f,ACCESS
+	decf	myComm2Timer,f,BANKED
 timercomm2done:
 #endif
 #ifdef USE_CHANNEL_3
-	movf	myComm3Timer,f,ACCESS
+	movf	myComm3Timer,f,BANKED
 	bz		timercomm3done
-	decf	myComm3Timer,f,ACCESS
+	decf	myComm3Timer,f,BANKED
 timercomm3done:
 #endif
+#ifdef USE_CHANNEL_4
+	movf	myComm4Timer,f,BANKED
+	bz		timercomm4done
+	decf	myComm4Timer,f,BANKED
+timercomm4done:
+#endif
+#ifdef USE_CHANNEL_5
+	movf	myComm5Timer,f,BANKED
+	bz		timercomm5done
+	decf	myComm5Timer,f,BANKED
+timercomm5done:
+#endif
+#ifdef USE_CHANNEL_6
+	movf	myComm6Timer,f,BANKED
+	bz		timercomm6done
+	decf	myComm6Timer,f,BANKED
+timercomm6done:
+#endif
+#ifdef USE_CHANNEL_7
+	movf	myComm7Timer,f,BANKED
+	bz		timercomm7done
+	decf	myComm7Timer,f,BANKED
+timercomm7done:
+#endif
 	movlw	PRESCALE_125MS
-	decfsz	myPrescale125msec,f,ACCESS
+	decfsz	myPrescale125msec,f,BANKED
 	bra		timerDone
-	movwf	myPrescale125msec		
+	movwf	myPrescale125msec,BANKED		
 	;here 125msec has passed
 
 	movlw	PRESCALE_500MS
-	decfsz	myPrescale500msec,f,ACCESS
+	decfsz	myPrescale500msec,f,BANKED
 	bra		timerDone
-	movwf	myPrescale500msec		
+	movwf	myPrescale500msec,BANKED		
 	;here 500msec has passed
-#ifdef DEBUG_LOOPBACK_TEST
-	bsf		bitTx0Start
-	bsf		bitRx0Start
-#endif
 timerDone:
 	;end debug
 	;run each transmitter @500usec
-	movf	myPrescaleTx,w,ACCESS
+	movf	myPrescaleTx,w,BANKED
 	call	Switchcase8
-	bra		tx0Jump		;0	run 0&1
-	bra		tx2Jump		;1	run 2&3
-	bra		tx4Jump		;2	run 4&5
-	bra		tx6Jump		;3	run 6&7
-	clrf	myPrescaleTx;4	run nothing
-	clrf	myPrescaleTx;5	run nothing
-	clrf	myPrescaleTx;6	run nothing
-	clrf	myPrescaleTx;7	run nothing
+	bra		tx0Jump				;0	run 0&1
+	bra		tx2Jump				;1	run 2&3
+	bra		tx4Jump				;2	run 4&5
+	bra		tx6Jump				;3	run 6&7
+	clrf	myPrescaleTx,BANKED	;4	run nothing
+	clrf	myPrescaleTx,BANKED	;5	run nothing
+	clrf	myPrescaleTx,BANKED	;6	run nothing
+	clrf	myPrescaleTx,BANKED	;7	run nothing
 	bra		txJumpsNoInc
 
 tx0Jump:
@@ -302,16 +322,126 @@ tx2Jump:
 #endif
 
 tx3Jump:
+#ifdef USE_CHANNEL_3
+	;labels
+	#define txState0		tx3State0
+	#define txState1		tx3State1
+	#define txState2		tx3State2
+	#define txState3		tx3State3
+	#define txState4		tx3State4
+	#define txState5		tx3State5
+	#define txState6		tx3State6
+	#define txState7		tx3State7
+	#define txNextState		tx3NextState
+	#define txDone			tx3Done
+	;data
+	#define myTxState		myTx3State
+	#define myTxBuffer		myTx3Buffer
+	#define myTxCounter		myTx3Counter
+	;bits
+	#define bitTxBusy		bitTx3Busy
+	#define bitTxStart		bitTx3Start
+	#define pinOutTx		pinOutTx3
+	#include manchester-Tx-States.inc
+#endif
 	bra	txjumpsDone
 tx4Jump:
+#ifdef USE_CHANNEL_4
+	;labels
+	#define txState0		tx4State0
+	#define txState1		tx4State1
+	#define txState2		tx4State2
+	#define txState3		tx4State3
+	#define txState4		tx4State4
+	#define txState5		tx4State5
+	#define txState6		tx4State6
+	#define txState7		tx4State7
+	#define txNextState		tx4NextState
+	#define txDone			tx4Done
+	;data
+	#define myTxState		myTx4State
+	#define myTxBuffer		myTx4Buffer
+	#define myTxCounter		myTx4Counter
+	;bits
+	#define bitTxBusy		bitTx4Busy
+	#define bitTxStart		bitTx4Start
+	#define pinOutTx		pinOutTx4
+	#include manchester-Tx-States.inc
+#endif
 tx5Jump:
+#ifdef USE_CHANNEL_5
+	;labels
+	#define txState0		tx5State0
+	#define txState1		tx5State1
+	#define txState2		tx5State2
+	#define txState3		tx5State3
+	#define txState4		tx5State4
+	#define txState5		tx5State5
+	#define txState6		tx5State6
+	#define txState7		tx5State7
+	#define txNextState		tx5NextState
+	#define txDone			tx5Done
+	;data
+	#define myTxState		myTx5State
+	#define myTxBuffer		myTx5Buffer
+	#define myTxCounter		myTx5Counter
+	;bits
+	#define bitTxBusy		bitTx5Busy
+	#define bitTxStart		bitTx5Start
+	#define pinOutTx		pinOutTx5
+	#include manchester-Tx-States.inc
+#endif
 	bra	txjumpsDone
 tx6Jump:
+#ifdef USE_CHANNEL_6
+	;labels
+	#define txState0		tx6State0
+	#define txState1		tx6State1
+	#define txState2		tx6State2
+	#define txState3		tx6State3
+	#define txState4		tx6State4
+	#define txState5		tx6State5
+	#define txState6		tx6State6
+	#define txState7		tx6State7
+	#define txNextState		tx6NextState
+	#define txDone			tx6Done
+	;data
+	#define myTxState		myTx6State
+	#define myTxBuffer		myTx6Buffer
+	#define myTxCounter		myTx6Counter
+	;bits
+	#define bitTxBusy		bitTx6Busy
+	#define bitTxStart		bitTx6Start
+	#define pinOutTx		pinOutTx6
+	#include manchester-Tx-States.inc
+#endif
 tx7Jump:
+#ifdef USE_CHANNEL_7
+	;labels
+	#define txState0		tx7State0
+	#define txState1		tx7State1
+	#define txState2		tx7State2
+	#define txState3		tx7State3
+	#define txState4		tx7State4
+	#define txState5		tx7State5
+	#define txState6		tx7State6
+	#define txState7		tx7State7
+	#define txNextState		tx7NextState
+	#define txDone			tx7Done
+	;data
+	#define myTxState		myTx7State
+	#define myTxBuffer		myTx7Buffer
+	#define myTxCounter		myTx7Counter
+	;bits
+	#define bitTxBusy		bitTx7Busy
+	#define bitTxStart		bitTx7Start
+	#define pinOutTx		pinOutTx7
+	#include manchester-Tx-States.inc
+#endif
 	bra	txjumpsDone
 
 txjumpsDone:
-	incf	myPrescaleTx,f,ACCESS
+	incf	myPrescaleTx,f,BANKED
 txJumpsNoInc:
 	
 
@@ -423,8 +553,189 @@ txJumpsNoInc:
 	#include manchester-Rx-States.inc
 #endif
 
-	;timing check
-;	movf	TMR2,w,ACCESS
-;	movwf	TXREG1,ACCESS
-;
+#ifdef USE_CHANNEL_3
+	;labels
+	#define rxState0			rx3State0	;receive
+	#define rxState1			rx3State1
+	#define rxState2			rx3State2
+	#define rxState3			rx3State3
+	#define rxState4			rx3State4
+	#define rxState5			rx3State5
+	#define rxState6			rx3State6
+	#define rxState7			rx3State7
+	#define rxState8			rx3State8
+	#define rxState9			rx3State9
+	#define rxState10			rx3State10
+	#define rxState11			rx3State11
+	#define rxState12			rx3State12
+	#define rxState13			rx3State13
+	#define rxState14			rx3State14
+	#define rxState15			rx3State15
+	#define rxStoreBit			rx3StoreBit
+	#define rxErrorLateEdge		rx3ErrorLateEdge
+	#define rxErrorFastEdge		rx3ErrorFastEdge
+	#define rxSetIdleState		rx3SetIdleState
+	#define rxNextState			rx3NextState
+	#define rxDone				rx3Done
+	;data
+	#define myRxState			myRx3State
+	#define myRxCounter			myRx3Counter
+	#define myRxBuffer			myRx3Buffer
+	;bits
+	#define bitRxBusy			bitRx3Busy
+	#define bitRxStart			bitRx3Start
+	#define pinInRx				pinInRx3
+	#define edgeRx				edgeRx3
+	#include manchester-Rx-States.inc
+#endif
+
+#ifdef USE_CHANNEL_4
+	;labels
+	#define rxState0			rx4State0	;receive
+	#define rxState1			rx4State1
+	#define rxState2			rx4State2
+	#define rxState3			rx4State3
+	#define rxState4			rx4State4
+	#define rxState5			rx4State5
+	#define rxState6			rx4State6
+	#define rxState7			rx4State7
+	#define rxState8			rx4State8
+	#define rxState9			rx4State9
+	#define rxState10			rx4State10
+	#define rxState11			rx4State11
+	#define rxState12			rx4State12
+	#define rxState13			rx4State13
+	#define rxState14			rx4State14
+	#define rxState15			rx4State15
+	#define rxStoreBit			rx4StoreBit
+	#define rxErrorLateEdge		rx4ErrorLateEdge
+	#define rxErrorFastEdge		rx4ErrorFastEdge
+	#define rxSetIdleState		rx4SetIdleState
+	#define rxNextState			rx4NextState
+	#define rxDone				rx4Done
+	;data
+	#define myRxState			myRx4State
+	#define myRxCounter			myRx4Counter
+	#define myRxBuffer			myRx4Buffer
+	;bits
+	#define bitRxBusy			bitRx4Busy
+	#define bitRxStart			bitRx4Start
+	#define pinInRx				pinInRx4
+	#define edgeRx				edgeRx4
+	#include manchester-Rx-States.inc
+#endif
+
+#ifdef USE_CHANNEL_5
+	;labels
+	#define rxState0			rx5State0	;receive
+	#define rxState1			rx5State1
+	#define rxState2			rx5State2
+	#define rxState3			rx5State3
+	#define rxState4			rx5State4
+	#define rxState5			rx5State5
+	#define rxState6			rx5State6
+	#define rxState7			rx5State7
+	#define rxState8			rx5State8
+	#define rxState9			rx5State9
+	#define rxState10			rx5State10
+	#define rxState11			rx5State11
+	#define rxState12			rx5State12
+	#define rxState13			rx5State13
+	#define rxState14			rx5State14
+	#define rxState15			rx5State15
+	#define rxStoreBit			rx5StoreBit
+	#define rxErrorLateEdge		rx5ErrorLateEdge
+	#define rxErrorFastEdge		rx5ErrorFastEdge
+	#define rxSetIdleState		rx5SetIdleState
+	#define rxNextState			rx5NextState
+	#define rxDone				rx5Done
+	;data
+	#define myRxState			myRx5State
+	#define myRxCounter			myRx5Counter
+	#define myRxBuffer			myRx5Buffer
+	;bits
+	#define bitRxBusy			bitRx5Busy
+	#define bitRxStart			bitRx5Start
+	#define pinInRx				pinInRx5
+	#define edgeRx				edgeRx5
+	#include manchester-Rx-States.inc
+#endif
+
+#ifdef USE_CHANNEL_6
+	;labels
+	#define rxState0			rx6State0	;receive
+	#define rxState1			rx6State1
+	#define rxState2			rx6State2
+	#define rxState3			rx6State3
+	#define rxState4			rx6State4
+	#define rxState5			rx6State5
+	#define rxState6			rx6State6
+	#define rxState7			rx6State7
+	#define rxState8			rx6State8
+	#define rxState9			rx6State9
+	#define rxState10			rx6State10
+	#define rxState11			rx6State11
+	#define rxState12			rx6State12
+	#define rxState13			rx6State13
+	#define rxState14			rx6State14
+	#define rxState15			rx6State15
+	#define rxStoreBit			rx6StoreBit
+	#define rxErrorLateEdge		rx6ErrorLateEdge
+	#define rxErrorFastEdge		rx6ErrorFastEdge
+	#define rxSetIdleState		rx6SetIdleState
+	#define rxNextState			rx6NextState
+	#define rxDone				rx6Done
+	;data
+	#define myRxState			myRx6State
+	#define myRxCounter			myRx6Counter
+	#define myRxBuffer			myRx6Buffer
+	;bits
+	#define bitRxBusy			bitRx6Busy
+	#define bitRxStart			bitRx6Start
+	#define pinInRx				pinInRx6
+	#define edgeRx				edgeRx6
+	#include manchester-Rx-States.inc
+#endif
+
+#ifdef USE_CHANNEL_7
+	;labels
+	#define rxState0			rx7State0	;receive
+	#define rxState1			rx7State1
+	#define rxState2			rx7State2
+	#define rxState3			rx7State3
+	#define rxState4			rx7State4
+	#define rxState5			rx7State5
+	#define rxState6			rx7State6
+	#define rxState7			rx7State7
+	#define rxState8			rx7State8
+	#define rxState9			rx7State9
+	#define rxState10			rx7State10
+	#define rxState11			rx7State11
+	#define rxState12			rx7State12
+	#define rxState13			rx7State13
+	#define rxState14			rx7State14
+	#define rxState15			rx7State15
+	#define rxStoreBit			rx7StoreBit
+	#define rxErrorLateEdge		rx7ErrorLateEdge
+	#define rxErrorFastEdge		rx7ErrorFastEdge
+	#define rxSetIdleState		rx7SetIdleState
+	#define rxNextState			rx7NextState
+	#define rxDone				rx7Done
+	;data
+	#define myRxState			myRx7State
+	#define myRxCounter			myRx7Counter
+	#define myRxBuffer			myRx7Buffer
+	;bits
+	#define bitRxBusy			bitRx7Busy
+	#define bitRxStart			bitRx7Start
+	#define pinInRx				pinInRx7
+	#define edgeRx				edgeRx7
+	#include manchester-Rx-States.inc
+#endif
+
+#ifdef TIMING_CHECK
+	movf	TMR2,w,ACCESS
+	cpfsgt	myPr2Max,BANKED
+	movwf	myPr2Max,BANKED	
+#endif
 	return

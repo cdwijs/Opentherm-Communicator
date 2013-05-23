@@ -36,6 +36,13 @@
 ;prescale=4,PR2=100, postscale=1
 ;Fosc/4/4/100/1
 ;FOSC/1600 = 16MHz / 1600 = 10KHz
+#ifdef P18F2x4xK22
+	#define CPU_16MHZ
+#endif
+#ifdef P18F2455_2550_4455_4550
+	#define CPU_8MHZ
+#endif
+
 
 ;Prescale for 10msec:
 #define PRESCALE_1MS	d'10' 
@@ -53,7 +60,7 @@
 ;1	SCS1	1	1x = Internal oscillator block
 ;0	SCS0	1
 #define INIT_OSCCON	b'01110011'
-;OSCCON2
+;OSCCON2 
 ;7	PLLRDY	0	0 = System clock comes from an oscillator, other than 4xPLL
 ;6	SOSCRUN	0	0 = System clock comes from an oscillator, other than SOSC
 ;5	-		0
@@ -73,21 +80,28 @@
 ;1	T2CKPS1		0	01 = Prescaler is 4
 ;0	T2CKPS0		1
 #define INIT_T2CON b'00000101'
-#define TMR2_INTERVAL d'100'
+#ifdef  CPU_16MHZ
+	#define TMR2_INTERVAL d'100'
+#endif
+#ifdef COU_8MHZ
+	#define TMR2_INTERVAL d'50'
+#endif
 
 timingInit:
 	movlw	INIT_OSCCON
-	movwf	OSCCON
+	movwf	OSCCON,ACCESS
+#ifdef P18F2x4xK22
 	movlw	INIT_OSCCON2
-	movwf	OSCCON2
+	movwf	OSCCON2,ACCESS
+#endif
 	movlw	INIT_T2CON
-	movwf	T2CON
+	movwf	T2CON,ACCESS
 	movlw	TMR2_INTERVAL
-	movwf	PR2
+	movwf	PR2,ACCESS
 	movlw	PRESCALE_1MS
-	movwf	myPrescale1msec
+	movwf	myPrescale1msec,BANKED
 	movlw	PRESCALE_125MS
-	movwf	myPrescale125msec		
+	movwf	myPrescale125msec,BANKED	
 	movlw	PRESCALE_500MS
-	movwf	myPrescale500msec		
+	movwf	myPrescale500msec,BANKED		
 	return

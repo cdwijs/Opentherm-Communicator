@@ -45,9 +45,8 @@
 ; |     |           |          |
 ; |     |BitRxBusy=1|          |
 ; |     +-----------+          |
-; |           |                |
-; |<----------+                |
-; |           |Edge            | ;cdw, on edge code goes to Sample5
+; |           | On Start Edge goto sample 5
+; |                            |
 ; |           |<---------------|------+
 ; |     +-----v-----+          |      |
 ; |     |Sample 1   |          |      |
@@ -158,7 +157,7 @@
 #define rxStateSample12		rxState14
 #define rxStateUnused15		rxState15	
 	
-	movf	myRxState,w,ACCESS
+	movf	myRxState,w,BANKED
 	call	Switchcase16
 	bra		rxState0
 	bra		rxState1
@@ -178,33 +177,47 @@
 	bra		rxState15
 
 rxStateIdle:
-	bcf		bitRxBusy
-	btfss	bitRxStart
+;#ifdef DEBUG_SERIAL
+;	movlw	'i'
+;	movwf	TXREG
+;#endif
+	bcf		bitRxBusy,BANKED
+	btfss	bitRxStart,BANKED
 	bra		rxDone
 	bra		rxNextState	
 
 rxStateWaitStart:
-	bsf		bitRxBusy
-	btfss	edgeRx		;only react to an edge, not a stuck-at-active signal...
+;#ifdef DEBUG_SERIAL
+;	movlw	'w'
+;	movwf	TXREG
+;#endif
+	bsf		bitRxBusy,BANKED
+	btfss	edgeRx,BANKED		;only react to an edge, not a stuck-at-active signal...
 	bra		rxDone
 #ifdef INPUT_INVERTED
-	btfsc	pinInRx
+	btfsc	pinInRx,BANKED
 #else
-	btfss	pinInRx
+	btfss	pinInRx,BANKED
 #endif
 	bra		rxDone
+
+#ifdef DEBUG_SERIAL
+	movlw	'e'
+	movwf	TXREG
+#endif
+
 	movlw	NUM_RX_BITS+1+1 ;first bit is startbit, and first decrement, and then check
-	movwf	myRxCounter,ACCESS
-	;first edge is at start of bit, so skip half a bittime
+	movwf	myRxCounter,BANKED
+	;first edge is at start of bit, instead of middle, so skip half a bittime
 	movlw	RX_SAMPLE_5
-	movwf	myRxState,ACCESS
+	movwf	myRxState,BANKED
 	bra		rxDone
 
 rxStateSample0:
 rxStateSample1:
 rxStateSample2:	
 rxStateSample3:
-	btfss	edgeRx
+	btfss	edgeRx,BANKED
 	bra		rxNextState
 	bra		rxErrorFastEdge
 
@@ -218,12 +231,12 @@ rxStateSample8:
 rxStateSample9:
 rxStateSample10:
 rxStateSample11:
-	btfss	edgeRx
+	btfss	edgeRx,BANKED
 	bra		rxNextState
 	bra		rxStoreBit
 
 rxStateSample12:
-	btfss	edgeRx
+	btfss	edgeRx,BANKED
 	bra		rxErrorLateEdge
 	bra		rxStoreBit
 
@@ -235,24 +248,23 @@ rxStateUnused15:
 rxStoreBit:
 	;opentherm sends and receives data MSB first
 	;store bit here
-	dcfsnz	myRxCounter,f,ACCESS
-	bra		rxSetIdleState	;cdw, this code does not check for stopbit
-	
+	dcfsnz	myRxCounter,f,BANKED
+	bra		rxSetIdleState	;cdw, this code does not check for stopbit	
 	bcf		Carry
 #ifdef INPUT_INVERTED
-	btfsc	pinInRx
+	btfsc	pinInRx,BANKED
 #else
-	btfss	pinInRx
+	btfss	pinInRx,BANKED
 #endif
 	bsf		Carry
-	rlcf	myRxBuffer+0,f,ACCESS
-	rlcf	myRxBuffer+1,f,ACCESS
-	rlcf	myRxBuffer+2,f,ACCESS
-	rlcf	myRxBuffer+3,f,ACCESS
+	rlcf	myRxBuffer+0,f,BANKED
+	rlcf	myRxBuffer+1,f,BANKED
+	rlcf	myRxBuffer+2,f,BANKED
+	rlcf	myRxBuffer+3,f,BANKED
 
 	;not all bits received
 	movlw	RX_SAMPLE_1
-	movwf	myRxState,ACCESS
+	movwf	myRxState,BANKED
 	bra		rxDone
 
 rxErrorLateEdge:
@@ -264,11 +276,11 @@ rxErrorFastEdge:
 	bra	rxSetIdleState
 rxSetIdleState:
 	movlw	RX_STATE_IDLE
-	movwf	myRxState,ACCESS
+	movwf	myRxState,BANKED
 	bra		rxDone
 
 rxNextState:
-	incf	myRxState,f,ACCESS
+	incf	myRxState,f,BANKED
 rxDone:
 
 ;labels

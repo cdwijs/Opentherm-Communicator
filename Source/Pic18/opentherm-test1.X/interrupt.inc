@@ -31,19 +31,29 @@
 ;    registered trademarks of The OpenTherm Association.                       *
 ;*******************************************************************************
 interruptInit:
-	bsf	RCON,IPEN	;1 = Enable priority levels on interrupts
-	bsf	IPR1,TMR2IP	;1 = High priority for TMR2
-	bsf	IPR1,TX1IP	;1 = High priority for TX1
-	bsf	PIE1,TMR2IE	;1 = Enables the TMR2 to PR2 match interrupt 
-	bsf	INTCON,GIEH	;1 = Enables all high priority interrupts
+	bsf	RCON,IPEN,ACCESS	;1 = Enable priority levels on interrupts
+	bsf	IPR1,TMR2IP,ACCESS	;1 = High priority for TMR2
+	#ifdef P18F2x4xK22
+		bsf	IPR1,TX1IP,ACCESS	;1 = High priority for TX1
+	#endif
+	#ifdef P18F2455_2550_4455_4550
+		bsf	IPR1,TXIP		;1= EUSART Transmit Interrupt Priority bit
+	#endif
+	bsf	PIE1,TMR2IE,ACCESS	;1 = Enables the TMR2 to PR2 match interrupt 
+	bsf	INTCON,GIEH,ACCESS	;1 = Enables all high priority interrupts
 	return
 
 interruptHigh:
-	btfsc	PIR1,TMR2IF	;1 = TMR2 to PR2 match occurred (must be cleared by software) 
-	call	int100usec		;replace by goto construction, to free up 1 stacklevel
-	btfsc	PIR1,TX1IF	;1 = The EUSART1 transmit buffer, TXREG1, is empty
+	btfsc	PIR1,TMR2IF,ACCESS	;1 = TMR2 to PR2 match occurred (must be cleared by software) 
+	call	int100usec			;replace by goto construction, to free up 1 stacklevel
+	#ifdef P18F2x4xK22
+		btfsc	PIR1,TX1IF,ACCESS	;1 = The EUSART1 transmit buffer, TXREG1, is empty
+	#endif
+	#ifdef P18F2455_2550_4455_4550
+		btfsc	PIR1,TXIF			;1 = The EUSART1 transmit buffer, TXREG1, is empty
+	#endif
 	call	serialTxInt
-	retfie	FAST		;auto-restore Wreg, Status and BSR registers
+	retfie	FAST				;auto-restore Wreg, Status and BSR registers
 	
 interruptLow:
 	retfie			;no autorestore

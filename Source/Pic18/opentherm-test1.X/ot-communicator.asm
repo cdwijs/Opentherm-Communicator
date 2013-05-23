@@ -33,6 +33,10 @@
 ;debug directives:
 ;define DEBUG_LOOPBACK_TEST
 ;define DEBUG_RS232_SPACES
+;define RS232_GREETING
+;define TIMING_CHECK
+;define DEBUG_NO_SERIAL_REPORT
+;define DEBUG_SERIAL
 
 #include config.inc
 
@@ -54,9 +58,7 @@ myreset: org 0x01fe		;prepare for bootloader
 	call	interruptInit
 mainloop:
 	clrwdt
-#ifndef DEBUG_LOOPBACK_TEST
 	call	commJumps
-#endif
 	goto	mainloop
 
 #include io.inc

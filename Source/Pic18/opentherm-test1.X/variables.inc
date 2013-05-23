@@ -146,10 +146,107 @@
 			myComm2Timer:1
 		endc
 	#endif
+	#ifdef USE_CHANNEL_3
+		#define bitTx3Start 		my3Flags,0
+		#define bitTx3Busy			my3Flags,1
+		#define bitRx3Start			my3Flags,2
+		#define bitRx3Busy			my3Flags,3
+		#define bitComm3StartMsg	my3Flags,4
+		#define bitComm3Busy		my3Flags,5
+		cblock
+			my3Flags:1
+			myTx3State:1
+			myTx3Counter:1
+			myTx3Buffer:4
+			myRx3State:1
+			myRx3Counter:1
+			myRx3Buffer:4
+			myComm3State:1
+			myComm3Timer:1
+		endc
+	#endif
+	#ifdef USE_CHANNEL_4
+		#define bitTx4Start 		my4Flags,0
+		#define bitTx4Busy			my4Flags,1
+		#define bitRx4Start			my4Flags,2
+		#define bitRx4Busy			my4Flags,3
+		#define bitComm4StartMsg	my4Flags,4
+		#define bitComm4Busy		my4Flags,5
+		cblock
+			my4Flags:1
+			myTx4State:1
+			myTx4Counter:1
+			myTx4Buffer:4
+			myRx4State:1
+			myRx4Counter:1
+			myRx4Buffer:4
+			myComm4State:1
+			myComm4Timer:1
+		endc
+	#endif
+	#ifdef USE_CHANNEL_5
+		#define bitTx5Start 		my5Flags,0
+		#define bitTx5Busy			my5Flags,1
+		#define bitRx5Start			my5Flags,2
+		#define bitRx5Busy			my5Flags,3
+		#define bitComm5StartMsg	my5Flags,4
+		#define bitComm5Busy		my5Flags,5
+		cblock
+			my5Flags:1
+			myTx5State:1
+			myTx5Counter:1
+			myTx5Buffer:4
+			myRx5State:1
+			myRx5Counter:1
+			myRx5Buffer:4
+			myComm5State:1
+			myComm5Timer:1
+		endc
+	#endif
+	#ifdef USE_CHANNEL_6
+		#define bitTx6Start 		my6Flags,0
+		#define bitTx6Busy			my6Flags,1
+		#define bitRx6Start			my6Flags,2
+		#define bitRx6Busy			my6Flags,3
+		#define bitComm6StartMsg	my6Flags,4
+		#define bitComm6Busy		my6Flags,5
+		cblock
+			my6Flags:1
+			myTx6State:1
+			myTx6Counter:1
+			myTx6Buffer:4
+			myRx6State:1
+			myRx6Counter:1
+			myRx6Buffer:4
+			myComm6State:1
+			myComm6Timer:1
+		endc
+	#endif
+	#ifdef USE_CHANNEL_7
+		#define bitTx7Start 		my7Flags,0
+		#define bitTx7Busy			my7Flags,1
+		#define bitRx7Start			my7Flags,2
+		#define bitRx7Busy			my7Flags,3
+		#define bitComm7StartMsg	my7Flags,4
+		#define bitComm7Busy		my7Flags,5
+		cblock
+			my7Flags:1
+			myTx7State:1
+			myTx7Counter:1
+			myTx7Buffer:4
+			myRx7State:1
+			myRx7Counter:1
+			myRx7Buffer:4
+			myComm7State:1
+			myComm7Timer:1
+		endc
+	#endif
 
-
-
-
+	#ifdef TIMING_CHECK
+		cblock
+			myPr2Max
+		endc
+	#endif
 
 #define RAMSTART_BANK0 h'0000'
 variablesInit:
@@ -158,5 +255,21 @@ varLoop:
 	clrf	POSTINC0
 	btfss	FSR0H,1		;stop at the begin of bank2 (0x0200)
 	bra		varLoop		;writes to uminplemented locations are ignored
+
+#ifdef DEBUG_LOOPBACK_TEST 
+	movlw	d'4' ;ot-comm will now add parity and then send it.
+	movwf	myComm0State
+	movwf	myComm1State
+	movwf	myComm2State
+	movwf	myComm3State
+	movwf	myComm4State
+	movwf	myComm5State	
+	movwf	myComm6State
+	movwf	myComm7State
+
+	
+
+
+#endif
 	return
 

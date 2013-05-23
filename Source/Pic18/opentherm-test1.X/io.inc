@@ -92,12 +92,12 @@
 #define INPUT_INVERTED	;>11V is seen by the uC as a 0, <11V is seen by the uC as a 1 
 #define OUTPUT_INVERTED ;a 0 from the uC is send as 20mA, a 1 from the uC is send as 7mA
 
-;define USE_CHANNEL_0
-;define USE_CHANNEL_1
-;define USE_CHANNEL_2
-;define USE_CHANNEL_3
-;define USE_CHANNEL_4
-;define USE_CHANNEL_5
+#define USE_CHANNEL_0
+#define USE_CHANNEL_1
+#define USE_CHANNEL_2
+#define USE_CHANNEL_3
+#define USE_CHANNEL_4
+#define USE_CHANNEL_5
 #define USE_CHANNEL_6
 ;define USE_CHANNEL_7
 
@@ -137,7 +137,7 @@
 	#define pinOutTx6	LATB,LATB6	;shared with PGC
 #endif
 #ifdef USE_CHANNEL_7
-	#define pinInRx7	myPortaNow,RA7
+	#define pinInRx7	myPortaNow,RA7 ;ra7 does not exist on pic18F4550
 	#define edgeRx7		myPortaEdge,RA7
 	#define pinOutTx7	LATB,LATB7	;shared with PGD
 #endif
@@ -152,26 +152,35 @@ ioInit:
 	;cdw, add init values for all the ansel registers
 	movlb	BANK_SFR
 	movlw	INIT_PORTA
-	movwf	PORTA,ACCESS
+	movwf	PORTA,	ACCESS
 	movlw	INIT_TRISA
-	movwf	TRISA,ACCESS
+	movwf	TRISA,	ACCESS
+#ifdef P18F2x4xK22
 	movlw	INIT_ANSELA
-	movwf	ANSELA,BANKED
+	movwf	ANSELA,	BANKED
+#endif
+#ifdef P18F2455_2550_4455_4550
+	MOVLW	0Fh				; Configure A/D
+	MOVWF	ADCON1,ACCESS	;for digital inputs
+	MOVLW	07h				; Configure comparators
+	MOVWF	CMCON,ACCESS			; for digital input
+#endif
+
 	movlw	INIT_PORTB
-	movwf	PORTB,ACCESS
+	movwf	PORTB,	ACCESS
 	movlw	INIT_TRISB
-	movwf	TRISB,ACCESS
+	movwf	TRISB,	ACCESS
 	movlw	INIT_PORTC
-	movwf	PORTC,ACCESS
+	movwf	PORTC,	ACCESS
 	movlw	INIT_TRISC
-	movwf	TRISC,ACCESS
+	movwf	TRISC,	ACCESS
 	movlw	INIT_PORTD
-	movwf	PORTD,ACCESS
+	movwf	PORTD,	ACCESS
 	movlw	INIT_TRISD
-	movwf	TRISD,ACCESS
+	movwf	TRISD,	ACCESS
 	movlw	INIT_PORTE
-	movwf	PORTE,ACCESS
+	movwf	PORTE,	ACCESS
 	movlw	INIT_TRISE
-	movwf	TRISE,ACCESS
+	movwf	TRISE,	ACCESS
 	movlb	BANK_RAM_0
 	return

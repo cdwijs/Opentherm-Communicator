@@ -96,7 +96,7 @@
 #define commStateWaitSend		commState6
 #define commStateSendAnswer		commState7
 
-	movf	myCommState,w,ACCESS
+	movf	myCommState,w,BANKED
 	call	Switchcase8
 	bra		commState0
 	bra		commState1
@@ -108,47 +108,63 @@
 	bra		commState7
 
 commStateIdle:
-	bsf		bitRxStart
-	btfss	bitRxBusy
+;#ifdef DEBUG_SERIAL
+;	movlw	'i'
+;	movwf	TXREG
+;#endif
+	bsf		bitRxStart,BANKED
+	btfss	bitRxBusy,BANKED
 	bra		commDone
 	bra		commNextState
 
 ;cdw, add timeout?
 commStateWaitAnswer:
-	bcf		bitRxStart
-	btfsc	bitRxBusy
+;#ifdef DEBUG_SERIAL
+;	movlw	'w'
+;	movwf	TXREG
+;#endif
+	bcf		bitRxStart,BANKED
+	btfsc	bitRxBusy,BANKED
 	bra		commDone
 	bra		commNextState
 
 #define regparity	reg0		
 commStateCheckMessageA:
+#ifdef DEBUG_SERIAL
+	movlw	'c'
+	movwf	TXREG
+#endif
 	movlw	TIME_COMM_RESPONSE
-	movwf	myCommTimer
+	movwf	myCommTimer,BANKED
 	
 	;first check Rx errors (late and early edges)
 	
 	;now check parity
-	movf	myRxBuffer+3,w,ACCESS
-	xorwf	myRxBuffer+2,w,ACCESS
-	xorwf	myRxBuffer+1,w,ACCESS
-	xorwf	myRxBuffer+0,w,ACCESS		
-	movwf	regparity,ACCESS
+	movf	myRxBuffer+3,w,BANKED
+	xorwf	myRxBuffer+2,w,BANKED
+	xorwf	myRxBuffer+1,w,BANKED
+	xorwf	myRxBuffer+0,w,BANKED
+	movwf	regparity,BANKED
 
-	swapf	regparity,w,ACCESS 
-    xorwf   regparity,f,ACCESS 
+	swapf	regparity,w,BANKED
+    xorwf   regparity,f,BANKED
 	bcf		Carry
-    rrcf	regparity,w,ACCESS
-    xorwf   regparity,f,ACCESS
+    rrcf	regparity,w,BANKED
+    xorwf   regparity,f,BANKED
     btfsc   regparity,2 
-    incf	regparity,f,ACCESS 
+    incf	regparity,f,BANKED
     ;parity is now in lowest bit of reg0
 	;0 means even, 1 means error
-	btfss	reg0,0
+	btfss	regparity,0,BANKED
 	bra		commNextState
 
+#ifdef DEBUG_SERIAL
+	movlw	'p'
+	movwf	TXREG
+#endif
 	;set error bit here
 	movlw	COMM_STATE_IDLE
-	movwf	myCommState,ACCESS
+	movwf	myCommState,BANKED
 	bra		commDone
 #undefine regparity
 		
@@ -192,18 +208,18 @@ commStateCheckMessageID:
 	;here the ID is not known
 	;prepare answer: "ID not known"
 	movlw	(MSG_TYPE_UNKNOWN_DATA_ID << 4)
-	movwf	myTxBuffer+OFFSET_MSG_TYPE,ACCESS
+	movwf	myTxBuffer+OFFSET_MSG_TYPE,BANKED
 	movff	myRxBuffer+OFFSET_MSG_ID,myTxBuffer+OFFSET_MSG_ID
-	clrf	myTxBuffer+OFFSET_DATA_HIGH,ACCESS
-	clrf	myTxBuffer+OFFSET_DATA_LOW,ACCESS
+	clrf	myTxBuffer+OFFSET_DATA_HIGH,BANKED
+	clrf	myTxBuffer+OFFSET_DATA_LOW,BANKED
 	bra		commNextState
 	
 commIdSlaveFlags:
-	clrf	myTxBuffer+OFFSET_DATA_LOW,ACCESS
-	clrf	myTxBuffer+OFFSET_DATA_HIGH,ACCESS
-	bsf		myTxBuffer+OFFSET_DATA_LOW,1 ;enable CH mode
-	bsf		myTxBuffer+OFFSET_DATA_LOW,3 ;enable flame (seems to only work in combination with bit1)
-;	bsf		myTxBuffer+OFFSET_DATA_LOW,5 ;enable CH2 mode
+	clrf	myTxBuffer+OFFSET_DATA_LOW,BANKED
+	clrf	myTxBuffer+OFFSET_DATA_HIGH,BANKED
+	bsf		myTxBuffer+OFFSET_DATA_LOW,1,BANKED ;enable CH mode
+	bsf		myTxBuffer+OFFSET_DATA_LOW,3,BANKED ;enable flame (seems to only work in combination with bit1)
+;	bsf		myTxBuffer+OFFSET_DATA_LOW,5,BANKED ;enable CH2 mode
 	bra		commStateCheckKnown
 commIdTempSetpoint:
 	bra		commStateCheckKnown
@@ -246,7 +262,7 @@ commIdRemoteOverRide:
 commStateCheckKnown:
 #define messagetype reg0
 	;figure out message type (bit6,5,4 of MSB)
-	swapf	myRxBuffer+3,w,ACCESS
+	swapf	myRxBuffer+OFFSET_MSG_TYPE,w,BANKED
 	andlw	h'07' ;w now holds message type, 0-7
 	btfsc	WREG,2
 	bra		commStateCheckWrongMsgtype
@@ -264,84 +280,82 @@ commReadData: ;thermostat is reading from us
 	;for now send always 0, wich is invalid :-)
 	movlw	(MSG_TYPE_READ_ACK << 4)
 ;	movlw	(MSG_TYPE_DATA_INVALID << 4)
-	movwf	myTxBuffer+OFFSET_MSG_TYPE,ACCESS
+	movwf	myTxBuffer+OFFSET_MSG_TYPE,BANKED
 	movff	myRxBuffer+OFFSET_MSG_ID,myTxBuffer+OFFSET_MSG_ID
-;	clrf	myTxBuffer+OFFSET_DATA_HIGH,ACCESS ;remove this, and fill in the data above
-;	clrf	myTxBuffer+OFFSET_DATA_LOW,ACCESS
-
-	;debug, replay 0x40192F80 to question 0x80190000
-;	movlw	h'2F'
-;	movwf	myTxBuffer+OFFSET_DATA_HIGH,ACCESS
-;	movlw	h'80'
-;	movwf	myTxBuffer+OFFSET_DATA_LOW,ACCESS
-	;end debug
-
-
+;	clrf	myTxBuffer+OFFSET_DATA_HIGH,BANKED ;remove this, and fill in the data above
+;	clrf	myTxBuffer+OFFSET_DATA_LOW,BANKED
 	bra		commNextState
 
 commWriteData: 
 	;for now send always 0
 	movlw	(MSG_TYPE_WRITE_ACK << 4)
-	movwf	myTxBuffer+OFFSET_MSG_TYPE,ACCESS
+	movwf	myTxBuffer+OFFSET_MSG_TYPE,BANKED
 	movff	myRxBuffer+OFFSET_MSG_ID,myTxBuffer+OFFSET_MSG_ID
-	clrf	myTxBuffer+OFFSET_DATA_HIGH,ACCESS
-	clrf	myTxBuffer+OFFSET_DATA_LOW,ACCESS
+	clrf	myTxBuffer+OFFSET_DATA_HIGH,BANKED
+	clrf	myTxBuffer+OFFSET_DATA_LOW,BANKED
 	bra		commNextState
 
 commWriteInvalid:
 	movlw	(MSG_TYPE_DATA_INVALID << 4)
-	movwf	myTxBuffer+OFFSET_MSG_TYPE,ACCESS
+	movwf	myTxBuffer+OFFSET_MSG_TYPE,BANKED
 	movff	myRxBuffer+OFFSET_MSG_ID,myTxBuffer+OFFSET_MSG_ID
-	clrf	myTxBuffer+OFFSET_DATA_HIGH,ACCESS
-	clrf	myTxBuffer+OFFSET_DATA_LOW,ACCESS
+	clrf	myTxBuffer+OFFSET_DATA_HIGH,BANKED
+	clrf	myTxBuffer+OFFSET_DATA_LOW,BANKED
 	bra		commNextState
 
 commStateCheckWrongMsgtype:
 	movlw	COMM_STATE_IDLE
-	movwf	myCommState,ACCESS
+	movwf	myCommState,BANKED
 	bra		commDone	
 
 #define regparity	reg0
 commStateSetupAnswer:
+#ifdef DEBUG_LOOPBACK_TEST
+	;fake the answer comes from the thermostat
+	bcf	myRxBuffer+OFFSET_MSG_TYPE,6
+#endif
 	;Fill in the parity bit, next state sends it.
-	movf	myTxBuffer+3,w,ACCESS
-	xorwf	myTxBuffer+2,w,ACCESS
-	xorwf	myTxBuffer+1,w,ACCESS
-	xorwf	myTxBuffer+0,w,ACCESS		
-	movwf	regparity,ACCESS
+	movf	myTxBuffer+3,w,BANKED
+	xorwf	myTxBuffer+2,w,BANKED
+	xorwf	myTxBuffer+1,w,BANKED
+	xorwf	myTxBuffer+0,w,BANKED
+	movwf	regparity,BANKED
 
-	swapf	regparity,w,ACCESS 
-    xorwf   regparity,f,ACCESS 
+	swapf	regparity,w,BANKED
+    xorwf   regparity,f,BANKED
 	bcf		Carry
-    rrcf	regparity,w,ACCESS
-    xorwf   regparity,f,ACCESS
-    btfsc   regparity,2 
-    incf	regparity,f,ACCESS 
+    rrcf	regparity,w,BANKED
+    xorwf   regparity,f,BANKED
+    btfsc   regparity,2,BANKED 
+    incf	regparity,f,BANKED
     ;parity is now in lowest bit of reg0
 	movlw	h'80'		
-	btfsc	regparity,0 	;0 means even, 1 means odd
-	xorwf	myTxBuffer+3	;invert parity bit if odd to make even
+	btfsc	regparity,0,BANKED 	;0 means even, 1 means odd
+	xorwf	myTxBuffer+3,BANKED	;invert parity bit if odd to make even
 	bra		commNextState
 
 #undefine regparity
 
 commStateReport:
-	movf	myRs232TxConsumer,w,ACCESS ;wait for serial buffer to be empty
-	cpfseq	myRs232TxProducer,ACCESS
+#ifdef DEBUG_NO_SERIAL_REPORT
+	bra		commNextState
+#endif
+	movf	myRs232TxConsumer,w,BANKED ;wait for serial buffer to be empty
+	cpfseq	myRs232TxProducer,BANKED
 	bra		commDone
 #ifdef DEBUG_RS232_SPACES
 	movlw	' '
 	call	serialPutByte
 #endif
-	movlw	'T'
+	movlw	'S'+COMM_CHANNEL
 	call	serialPutByte
-	movf	myRxBuffer+3,w,ACCESS
+	movf	myRxBuffer+3,w,BANKED
 	call	serialPutByteHex
-	movf	myRxBuffer+2,w,ACCESS
+	movf	myRxBuffer+2,w,BANKED
 	call	serialPutByteHex
-	movf	myRxBuffer+1,w,ACCESS
+	movf	myRxBuffer+1,w,BANKED
 	call	serialPutByteHex
-	movf	myRxBuffer+0,w,ACCESS
+	movf	myRxBuffer+0,w,BANKED
 	call	serialPutByteHex
 	movlw	h'0d' ;cr + lf
 	call	serialPutByte
@@ -351,15 +365,15 @@ commStateReport:
 	movlw	' '
 	call	serialPutByte
 #endif
-	movlw	'B'
+	movlw	'A'+COMM_CHANNEL
 	call	serialPutByte
-	movf	myTxBuffer+3,w,ACCESS
+	movf	myTxBuffer+3,w,BANKED
 	call	serialPutByteHex
-	movf	myTxBuffer+2,w,ACCESS
+	movf	myTxBuffer+2,w,BANKED
 	call	serialPutByteHex
-	movf	myTxBuffer+1,w,ACCESS
+	movf	myTxBuffer+1,w,BANKED
 	call	serialPutByteHex
-	movf	myTxBuffer+0,w,ACCESS
+	movf	myTxBuffer+0,w,BANKED
 	call	serialPutByteHex
 	movlw	h'0d' ;cr + lf
 	call	serialPutByte
@@ -369,24 +383,29 @@ commStateReport:
 	bra		commNextState
 
 commStateWaitSend:
-	movf	myCommTimer,f,ACCESS
+	movf	myCommTimer,f,BANKED
 	bnz		commDone
-	bsf		bitTxStart
+#ifdef DEBUG_SERIAL
+	movlw	'a'
+	movwf	TXREG
+#endif
+	bsf		bitTxStart,BANKED
 	bra		commNextState
  
 commStateSendAnswer:		
-	btfss	bitTxBusy
+	btfss	bitTxBusy,BANKED
 	bra		commDone	
-	bcf		bitTxStart
+	bcf		bitTxStart,BANKED
 	movlw	COMM_STATE_IDLE
-	movwf	myCommState,ACCESS
+	movwf	myCommState,BANKED
 	bra		commDone
 
 commNextState:
-	incf	myCommState,f,ACCESS
+	incf	myCommState,f,BANKED
 commDone:
 
 ;labels
+#undefine COMM_CHANNEL
 #undefine commStateIdle
 #undefine COMM_STATE_IDLE
 #undefine commStateWaitAnswer

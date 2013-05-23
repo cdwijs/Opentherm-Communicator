@@ -69,6 +69,7 @@
 
 commJumps:
 #ifdef USE_CHANNEL_0
+	#define COMM_CHANNEL		0
 	;labels
 	#define commState0			comm0State0
 	#define commState1			comm0State1
@@ -118,6 +119,7 @@ commJumps:
 #endif
 
 #ifdef USE_CHANNEL_1
+	#define COMM_CHANNEL		1
 	;labels
 	#define commState0			comm1State0
 	#define commState1			comm1State1
@@ -167,6 +169,7 @@ commJumps:
 #endif
 
 #ifdef USE_CHANNEL_2
+	#define COMM_CHANNEL		2
 	;labels
 	#define commState0			comm2state0
 	#define commState1			comm2State1
@@ -216,6 +219,7 @@ commJumps:
 #endif
 
 #ifdef USE_CHANNEL_3
+	#define COMM_CHANNEL		3
 	;labels
 	#define commState0			comm3State0
 	#define commState1			comm3State1
@@ -261,6 +265,206 @@ commJumps:
 	#define bitRxBusy			bitRx3Busy
 	#define bitTxStart			bitTx3Start
 	#define bitTxBusy			bitTx3Busy
+	#include ot-comm-states.inc
+#endif
+
+#ifdef USE_CHANNEL_4
+	#define COMM_CHANNEL		4
+	;labels
+	#define commState0			comm4State0
+	#define commState1			comm4State1
+	#define commState2			comm4State2
+	#define commState3			comm4State3
+	#define commState4			comm4State4
+	#define commState5			comm4State5
+	#define commState6			comm4State6
+	#define commState7			comm4State7
+	#define commNextState		comm4NextState
+	#define commDone			comm4Done
+	#define commIdSlaveFlags			comm4IdSlaveFlags
+	#define commIdTempSetpoint			comm4IdTempSetpoint
+	#define commIdRemoteOverwrite		comm4IdRemoteOverwrite
+	#define commIdMaxRelMod				comm4IdMaxRelMod
+	#define commIdMaxBoilerCapacity		comm4IdMaxBoilerCapacity
+	#define commIdRoomSetpoint			comm4IdRoomSetpoint
+	#define commIdRelModLevel			comm4IdRelModLevel
+	#define commIdWaterPressInCh		comm4IdWaterPressInCh
+	#define commIdDayOfWeek				comm4IdDayOfWeek
+	#define commIdRoomTemp				comm4IdRoomTemp
+	#define commIdFlowWaterTemp			comm4IdFlowWaterTemp
+	#define commIdDwhTemp				comm4IdDwhTemp
+	#define commIdOutsideTemp			comm4IdOutsideTemp
+	#define commIdReturnWaterTemp		comm4IdReturnWaterTemp
+	#define commIdDhwSetpoint			comm4IdDhwSetpoint
+	#define commIdMaxChWaterSetpoint	comm4IdMaxChWaterSetpoint
+	#define commIdRemoteOverRide		comm4IdRemoteOverRide
+	#define commStateCheckKnown			comm4StateCheckKnown
+	#define commReadData				comm4ReadData
+	#define commWriteData				comm4WriteData
+	#define commWriteInvalid			comm4WriteInvalid
+	#define commStateCheckWrongMsgtype	comm4StateCheckWrongMsgtype
+	;data
+	#define myCommState			myComm4State
+	#define myCommTimer			myComm4Timer
+	#define myRxBuffer			myRx4Buffer
+	#define myTxBuffer			myTx4Buffer
+	;bits
+	#define bitCommBusy			bitComm4Busy
+	#define bitCommStartMsg		bitComm4StartMsg
+	#define bitRxStart			bitRx4Start
+	#define bitRxBusy			bitRx4Busy
+	#define bitTxStart			bitTx4Start
+	#define bitTxBusy			bitTx4Busy
+	#include ot-comm-states.inc
+#endif
+
+#ifdef USE_CHANNEL_5
+	#define COMM_CHANNEL		5
+	;labels
+	#define commState0			comm5State0
+	#define commState1			comm5State1
+	#define commState2			comm5State2
+	#define commState3			comm5State3
+	#define commState4			comm5State4
+	#define commState5			comm5State5
+	#define commState6			comm5State6
+	#define commState7			comm5State7
+	#define commNextState		comm5NextState
+	#define commDone			comm5Done
+	#define commIdSlaveFlags			comm5IdSlaveFlags
+	#define commIdTempSetpoint			comm5IdTempSetpoint
+	#define commIdRemoteOverwrite		comm5IdRemoteOverwrite
+	#define commIdMaxRelMod				comm5IdMaxRelMod
+	#define commIdMaxBoilerCapacity		comm5IdMaxBoilerCapacity
+	#define commIdRoomSetpoint			comm5IdRoomSetpoint
+	#define commIdRelModLevel			comm5IdRelModLevel
+	#define commIdWaterPressInCh		comm5IdWaterPressInCh
+	#define commIdDayOfWeek				comm5IdDayOfWeek
+	#define commIdRoomTemp				comm5IdRoomTemp
+	#define commIdFlowWaterTemp			comm5IdFlowWaterTemp
+	#define commIdDwhTemp				comm5IdDwhTemp
+	#define commIdOutsideTemp			comm5IdOutsideTemp
+	#define commIdReturnWaterTemp		comm5IdReturnWaterTemp
+	#define commIdDhwSetpoint			comm5IdDhwSetpoint
+	#define commIdMaxChWaterSetpoint	comm5IdMaxChWaterSetpoint
+	#define commIdRemoteOverRide		comm5IdRemoteOverRide
+	#define commStateCheckKnown			comm5StateCheckKnown
+	#define commReadData				comm5ReadData
+	#define commWriteData				comm5WriteData
+	#define commWriteInvalid			comm5WriteInvalid
+	#define commStateCheckWrongMsgtype	comm5StateCheckWrongMsgtype
+	;data
+	#define myCommState			myComm5State
+	#define myCommTimer			myComm5Timer
+	#define myRxBuffer			myRx5Buffer
+	#define myTxBuffer			myTx5Buffer
+	;bits
+	#define bitCommBusy			bitComm5Busy
+	#define bitCommStartMsg		bitComm5StartMsg
+	#define bitRxStart			bitRx5Start
+	#define bitRxBusy			bitRx5Busy
+	#define bitTxStart			bitTx5Start
+	#define bitTxBusy			bitTx5Busy
+	#include ot-comm-states.inc
+#endif
+
+#ifdef USE_CHANNEL_6
+	#define COMM_CHANNEL		6
+	;labels
+	#define commState0			comm6State0
+	#define commState1			comm6State1
+	#define commState2			comm6State2
+	#define commState3			comm6State3
+	#define commState4			comm6State4
+	#define commState5			comm6State5
+	#define commState6			comm6State6
+	#define commState7			comm6State7
+	#define commNextState		comm6NextState
+	#define commDone			comm6Done
+	#define commIdSlaveFlags			comm6IdSlaveFlags
+	#define commIdTempSetpoint			comm6IdTempSetpoint
+	#define commIdRemoteOverwrite		comm6IdRemoteOverwrite
+	#define commIdMaxRelMod				comm6IdMaxRelMod
+	#define commIdMaxBoilerCapacity		comm6IdMaxBoilerCapacity
+	#define commIdRoomSetpoint			comm6IdRoomSetpoint
+	#define commIdRelModLevel			comm6IdRelModLevel
+	#define commIdWaterPressInCh		comm6IdWaterPressInCh
+	#define commIdDayOfWeek				comm6IdDayOfWeek
+	#define commIdRoomTemp				comm6IdRoomTemp
+	#define commIdFlowWaterTemp			comm6IdFlowWaterTemp
+	#define commIdDwhTemp				comm6IdDwhTemp
+	#define commIdOutsideTemp			comm6IdOutsideTemp
+	#define commIdReturnWaterTemp		comm6IdReturnWaterTemp
+	#define commIdDhwSetpoint			comm6IdDhwSetpoint
+	#define commIdMaxChWaterSetpoint	comm6IdMaxChWaterSetpoint
+	#define commIdRemoteOverRide		comm6IdRemoteOverRide
+	#define commStateCheckKnown			comm6StateCheckKnown
+	#define commReadData				comm6ReadData
+	#define commWriteData				comm6WriteData
+	#define commWriteInvalid			comm6WriteInvalid
+	#define commStateCheckWrongMsgtype	comm6StateCheckWrongMsgtype
+	;data
+	#define myCommState			myComm6State
+	#define myCommTimer			myComm6Timer
+	#define myRxBuffer			myRx6Buffer
+	#define myTxBuffer			myTx6Buffer
+	;bits
+	#define bitCommBusy			bitComm6Busy
+	#define bitCommStartMsg		bitComm6StartMsg
+	#define bitRxStart			bitRx6Start
+	#define bitRxBusy			bitRx6Busy
+	#define bitTxStart			bitTx6Start
+	#define bitTxBusy			bitTx6Busy
+	#include ot-comm-states.inc
+#endif
+
+#ifdef USE_CHANNEL_7
+	#define COMM_CHANNEL		7
+	;labels
+	#define commState0			comm7State0
+	#define commState1			comm7State1
+	#define commState2			comm7State2
+	#define commState3			comm7State3
+	#define commState4			comm7State4
+	#define commState5			comm7State5
+	#define commState6			comm7State6
+	#define commState7			comm7State7
+	#define commNextState		comm7NextState
+	#define commDone			comm7Done
+	#define commIdSlaveFlags			comm7IdSlaveFlags
+	#define commIdTempSetpoint			comm7IdTempSetpoint
+	#define commIdRemoteOverwrite		comm7IdRemoteOverwrite
+	#define commIdMaxRelMod				comm7IdMaxRelMod
+	#define commIdMaxBoilerCapacity		comm7IdMaxBoilerCapacity
+	#define commIdRoomSetpoint			comm7IdRoomSetpoint
+	#define commIdRelModLevel			comm7IdRelModLevel
+	#define commIdWaterPressInCh		comm7IdWaterPressInCh
+	#define commIdDayOfWeek				comm7IdDayOfWeek
+	#define commIdRoomTemp				comm7IdRoomTemp
+	#define commIdFlowWaterTemp			comm7IdFlowWaterTemp
+	#define commIdDwhTemp				comm7IdDwhTemp
+	#define commIdOutsideTemp			comm7IdOutsideTemp
+	#define commIdReturnWaterTemp		comm7IdReturnWaterTemp
+	#define commIdDhwSetpoint			comm7IdDhwSetpoint
+	#define commIdMaxChWaterSetpoint	comm7IdMaxChWaterSetpoint
+	#define commIdRemoteOverRide		comm7IdRemoteOverRide
+	#define commStateCheckKnown			comm7StateCheckKnown
+	#define commReadData				comm7ReadData
+	#define commWriteData				comm7WriteData
+	#define commWriteInvalid			comm7WriteInvalid
+	#define commStateCheckWrongMsgtype	comm7StateCheckWrongMsgtype
+	;data
+	#define myCommState			myComm7State
+	#define myCommTimer			myComm7Timer
+	#define myRxBuffer			myRx7Buffer
+	#define myTxBuffer			myTx7Buffer
+	;bits
+	#define bitCommBusy			bitComm7Busy
+	#define bitCommStartMsg		bitComm7StartMsg
+	#define bitRxStart			bitRx7Start
+	#define bitRxBusy			bitRx7Busy
+	#define bitTxStart			bitTx7Start
+	#define bitTxBusy			bitTx7Busy
 	#include ot-comm-states.inc
 #endif
 	return

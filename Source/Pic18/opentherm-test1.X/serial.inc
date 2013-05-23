@@ -30,18 +30,31 @@
 ;    OpenTherm,OpenTherm/Plus,OpenTherm/Lite and the OpenTherm logo are        *
 ;    registered trademarks of The OpenTherm Association.                       *
 ;*******************************************************************************
-;Baudrate 19K2
-;BRGH=1, BRG16=1
-;              16MHz/4
-;(SPBRG) = ---------= 208.33
-;              19200
-#define INIT_SPBRG	d'416'	;9600 = 416  
-;define INIT_SPBRG	d'207'	;19K2 = 207 ;reports only 2 chars on 19K2 or 9600 baud?
-;define INIT_SPBRG	d'34'	;115k2 = 34
+#ifdef CPU_16MHZ
+	;Baudrate 19K2
+	;BRGH=1, BRG16=1
+	;              16MHz/4
+	;(SPBRG) = ---------= 208.33
+	;              19200
+	#define INIT_SPBRG	d'416'	;9600 = 416  
+	;define INIT_SPBRG	d'207'	;19K2 = 207
+	;define INIT_SPBRG	d'34'	;115k2 = 34
+#endif
+
+#ifdef CPU_8MHZ
+	;Baudrate 19K2
+	;BRGH=1, BRG16=1
+	;              16MHz/4
+	;(SPBRG) = ---------= 208.33
+	;              19200
+	#define INIT_SPBRG	d'207'	;9600 = 207
+	;define INIT_SPBRG	d'103'	;19K2 = 103
+	;define INIT_SPBRG	d'16'	;115k2 = 16
+#endif
 
 serialInit:
 	movlb	BANK_RAM_0
-
+#ifdef P18F2x4xK22
 	movlw	high(INIT_SPBRG)
 	movwf	SPBRGH1,ACCESS
 	movlw	low(INIT_SPBRG)
@@ -53,6 +66,21 @@ serialInit:
 	bsf		TRISC,6,ACCESS
 	bsf		RCSTA1,SPEN,ACCESS
 	bsf		TXSTA1,TXEN,ACCESS
+#endif
+#ifdef P18F2455_2550_4455_4550
+	movlw	high(INIT_SPBRG)
+	movwf	SPBRGH,ACCESS
+	movlw	low(INIT_SPBRG)
+	movwf	SPBRG,ACCESS
+
+	bsf		TXSTA,BRGH,ACCESS
+	bsf		BAUDCON,BRG16
+	bcf		TXSTA,SYNC,ACCESS
+	bsf		TRISC,6,ACCESS
+	bsf		RCSTA,SPEN,ACCESS
+	bsf		TXSTA,TXEN,ACCESS
+#endif
+#ifdef RS232_GREETING
 	movlw	'H'
 	call	serialPutByte
 	movlw	'o'
@@ -61,19 +89,20 @@ serialInit:
 	call	serialPutByte
 	movlw	'!'
 	call	serialPutByte
+#endif
 	return
 
 #define regserialbyte	reg1
 serialPutByteHex
-	movwf	regserialbyte,ACCESS
-	swapf	regserialbyte,w,ACCESS	;get highnibble
+	movwf	regserialbyte,BANKED
+	swapf	regserialbyte,w,BANKED	;get highnibble
 	andlw	h'0f'
 	addlw	-d'10'
 	btfsc	Carry
 	addlw	'A' - '9'  -1
 	addlw	'0' + d'10'
 	call	serialPutByte
-	movf	regserialbyte,w,ACCESS	;get lownibble
+	movf	regserialbyte,w,BANKED	;get lownibble
 	andlw	h'0f'
 	addlw	-d'10'
 	btfsc	Carry
@@ -85,13 +114,18 @@ serialPutByteHex
 #define regserialbyte	reg0
 serialPutByte
 	;place byte in wreg into buffer, it does not check for space in the buffer
-	movwf	regserialbyte,ACCESS
+	movwf	regserialbyte,BANKED
 	lfsr	0,myRs232TxBuf
-	incf	myRs232TxProducer,w,ACCESS
+	incf	myRs232TxProducer,w,BANKED
 	andlw	SERIAL_BUF_MASK
-	movwf	myRs232TxProducer,ACCESS	
+	movwf	myRs232TxProducer,BANKED
 	movff	regserialbyte,PLUSW0
-	bsf		PIE1,TX1IE ;enable TX interrupt here
+	#ifdef P18F2455_2550_4455_4550
+		bsf		PIE1,TXIE ;enable TX interrupt here
+	#endif
+	#ifdef P18F2x4xK22
+		bsf		PIE1,TX1IE ;enable TX interrupt here
+	#endif
 	return
 #undefine regserialbyte
 
@@ -99,17 +133,26 @@ serialTxInt:
 ;need to save / restore FSR0 here, or only use fsr0 in interrupt
 	;if producer != consumer, there's data to be send
 	lfsr	0,myRs232TxBuf
-	movf	myRs232TxConsumer,w,ACCESS
-	cpfseq	myRs232TxProducer,ACCESS
+	movf	myRs232TxConsumer,w,BANKED
+	cpfseq	myRs232TxProducer,BANKED
 	bra		serialTxIntBusy
-	bcf		PIE1,TX1IE ;disable interrupt
+	#ifdef P18F2455_2550_4455_4550
+		bcf		PIE1,TXIE ;disable interrupt
+	#endif
+	#ifdef P18F2x4xK22
+		bcf		PIE1,TX1IE ;disable interrupt
+	#endif
 	bra		serialTxIntDone						
 serialTxIntBusy:
-	incf	myRs232TxConsumer,w,ACCESS
+	incf	myRs232TxConsumer,w,BANKED
 	andlw	SERIAL_BUF_MASK
-	movwf	myRs232TxConsumer,ACCESS
-	movff	PLUSW0,TXREG1
-	
+	movwf	myRs232TxConsumer,BANKED
+	#ifdef P18F2455_2550_4455_4550
+		movff	PLUSW0,TXREG
+	#endif
+	#ifdef P18F2x4xK22
+		movff	PLUSW0,TXREG1
+	#endif
 	
 serialTxIntDone:
 	return
