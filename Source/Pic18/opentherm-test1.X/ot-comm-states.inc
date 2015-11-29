@@ -216,7 +216,7 @@ commStateCheckMessageID:
 commIdSlaveFlags:
 	bcf		myTxBuffer+OFFSET_DATA_LOW,1,BANKED ;disable CH mode
 	bcf		myTxBuffer+OFFSET_DATA_LOW,3,BANKED ;disable flame (seems to only work in combination with bit1)
-	btfsc	bitSymFlame,BANKED 
+	btfss	bitSymFlame,BANKED 
 	bra		commStateCheckKnown
 	bsf		myTxBuffer+OFFSET_DATA_LOW,1,BANKED ;enable CH mode
 	bsf		myTxBuffer+OFFSET_DATA_LOW,3,BANKED ;enable flame (seems to only work in combination with bit1)
