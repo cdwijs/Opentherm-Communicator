@@ -47,6 +47,7 @@
 #define RS232_CMD_SELECT_THERM_5	'X'
 #define RS232_CMD_SELECT_THERM_6	'Y'
 #define RS232_CMD_SELECT_THERM_7	'Z'
+#define MAX_THERMOSTAT				d'7'
 
 #define RS232_SMD_SET_TEMP			'G'
 #define RS232_CMD_SET_SYM_FLAME		'F'
@@ -57,26 +58,16 @@
 
 #define cmdStateIdle				cmdState0
 #define CMD_STATE_IDLE				d'0'
-#define cmdStateThermostat			cmdState1
-#define cmdStateCommand				cmdState2
-#define CMD_STATE_COMMAND			d'2'
-#define cmdSetpoint					cmdState3
-#define cmdSetpointD3				cmdState4
-#define CMD_STATE_SETPOINT			d'4'
-#define cmdSetpointD2				cmdState5
-#define cmdSetpointD1				cmdState6
-#define cmdSetpointD0				cmdState7
-#define cmdSetpointCr				cmdState8
-#define cmdSetpointLf				cmdState9
-#define cmdSym						cmdState10
-#define cmdSymD0					cmdState11
-#define CMD_STATE_SYM				d'11'
-#define cmdSymCr					cmdState12
-#define cmdSymLf					cmdState13
-#define cmdAliveCr					cmdState14
-#define CMD_STATE_KEEP_ALIVE		d'14'
-#define cmdAliveLf					cmdState15
-
+#define cmdStateCommand				cmdState1
+#define CMD_STATE_COMMAND			d'1'
+#define cmdSetpointD3				cmdState2
+#define CMD_STATE_D3				d'2'
+#define cmdSetpointD2				cmdState3
+#define cmdSetpointD1				cmdState4
+#define cmdSetpointD0				cmdState5
+#define CMD_STATE_D0				d'5'
+#define cmdSetpointCr				cmdState6
+#define cmdSetpointLf				cmdState7
 
 CmdJump:
 ;only execute the state machine when a char has been received.
@@ -85,7 +76,8 @@ CmdJump:
 	movf	myRs232RxProducer,w,BANKED	;myRs232Producer can increase under interrupt,
 	movwf	rxproducer,BANKED			;so store in more stable place
 	xorwf	myRs232RxConsumer,w,BANKED
-	bz		cmdDone						;producer = consumer -> nothing received, nothing to do here
+	btfsc	Zero
+	goto	cmdDone						;producer = consumer -> nothing received, nothing to do here
 	
 	lfsr	1,myRs232RxBuf				;fsr1 is not used in interrupts, so can be used here
 	movf	myRs232RxConsumer,w,BANKED
@@ -95,7 +87,7 @@ CmdJump:
 	movwf	myRs232RxConsumer,BANKED
 
 	movf	myCmdState,w,BANKED
-	call	Switchcase16
+	call	Switchcase8
 	bra		cmdState0
 	bra		cmdState1
 	bra		cmdState2
@@ -104,14 +96,6 @@ CmdJump:
 	bra		cmdState5
 	bra		cmdState6
 	bra		cmdState7
-	bra		cmdState8
-	bra		cmdState9
-	bra		cmdState10
-	bra		cmdState11
-	bra		cmdState12
-	bra		cmdState13
-	bra		cmdState14
-	bra		cmdState15
 
 cmdStateIdle:
 	;check first byte of command, can be 'a' (keepalive) of 'S'..'Z' (Thermostat 0..7)
@@ -119,72 +103,31 @@ cmdStateIdle:
 
 	xorlw	RS232_CMD_KEEPALIVE
 	bz		cmdKeepAlive
-	xorlw	RS232_CMD_SELECT_THERM_0^RS232_CMD_KEEPALIVE
-	bz		cmdSelect0
-	xorlw	RS232_CMD_SELECT_THERM_1^RS232_CMD_SELECT_THERM_0
-	bz		cmdSelect1
-	xorlw	RS232_CMD_SELECT_THERM_2^RS232_CMD_SELECT_THERM_1
-	bz		cmdSelect2
-	xorlw	RS232_CMD_SELECT_THERM_3^RS232_CMD_SELECT_THERM_2
-	bz		cmdSelect3
-	xorlw	RS232_CMD_SELECT_THERM_4^RS232_CMD_SELECT_THERM_3
-	bz		cmdSelect4
-	xorlw	RS232_CMD_SELECT_THERM_5^RS232_CMD_SELECT_THERM_4
-	bz		cmdSelect5
-	xorlw	RS232_CMD_SELECT_THERM_6^RS232_CMD_SELECT_THERM_5
-	bz		cmdSelect6
-	xorlw	RS232_CMD_SELECT_THERM_7^RS232_CMD_SELECT_THERM_6
-	bz		cmdSelect7
-	;command unknown, ignore until a valid command has been received
-	bra		cmdDone
-
-cmdKeepAlive:
-	movlw	CMD_STATE_KEEP_ALIVE
-	bra		cmdSetState
-
-cmdSelect0:
-cmdSelect1:
-cmdSelect2:
-cmdSelect3:
-cmdSelect4:
-cmdSelect5:
-cmdSelect6:
-cmdSelect7:
 	movlw	RS232_CMD_SELECT_THERM_0
 	subwf	rxbyte,w,BANKED	;w how holds the thermostat channel, 0..7
 	movwf	myCmdThermostat,BANKED
+	sublw	MAX_THERMOSTAT ;carry set when thermostat 0..7
+	bnc		cmdResetState		   ;command unknown, ignore until a valid command has been received	
 	movlw	CMD_STATE_COMMAND
 	bra		cmdSetState
 
-	
-cmdStateThermostat:	;state unused, should be removed
-	bra		cmdResetState
+cmdKeepAlive:
+;	movlw	CMD_STATE_KEEP_ALIVE
+;	bra		cmdSetState
+	bra		cmdResetState ;;;;keepalive for now disabled
 
 cmdStateCommand:
 	;command can be 'G'(Setpoint), 'F'(Symbol Flame), 'B'(Symbol Boiler)
+	clrf	myCmdData+HIGH_BYTE,BANKED
+	clrf	myCmdData+LOW_BYTE,BANKED
 	movf	rxbyte,w,BANKED
-	xorlw	RS232_SMD_SET_TEMP
-	bz		cmdSetTemp
-	xorlw	RS232_CMD_SET_SYM_FLAME^RS232_SMD_SET_TEMP
-	bz		cmdSetFlame
-	xorlw	RS232_CMD_SET_SYM_BOILER^RS232_CMD_SET_SYM_FLAME
-	bz		cmdSetBoiler
-	bra		cmdResetState ;command unknown, reset the command handler
-
-cmdSetTemp:
-	movlw	CMD_STATE_SETPOINT
-	bra		cmdSetState
-cmdSetFlame:
-	bsf		bitCmdSymFlame
-	movlw	CMD_STATE_SYM
-	bra		cmdSetState
-cmdSetBoiler:
-	bsf		bitCmdSymBoil
-	movlw	CMD_STATE_SYM
-	bra		cmdSetState
+	movwf	myCmd,BANKED
 	
-cmdSetpoint:	;state unused, should be removed
-	bra		cmdResetState
+	xorlw	RS232_SMD_SET_TEMP
+	movlw	CMD_STATE_D0;other commands have only 1 data nibble
+	btfsc	Zero	;set temp command has 4 data nibbles
+	movlw	CMD_STATE_D3	
+	bra		cmdSetState
 
 cmdSetpointD3:
 	movf	rxbyte,w,BANKED
@@ -218,11 +161,22 @@ cmdSetpointCr:
 	bz		cmdNextState
 	bra		cmdResetState
 
-cmdSetpointLf: ;check for lf and execute
+cmdSetpointLf: ;check for lf
 	movf	rxbyte,w
 	xorlw	RS232_LF
 	bnz		cmdResetState
-	;;execute command here
+	
+	;execute command here
+	movf	myCmd,w,BANKED
+	xorlw	RS232_SMD_SET_TEMP
+	bz		cmdSetTemp
+	xorlw	RS232_CMD_SET_SYM_FLAME^RS232_SMD_SET_TEMP
+	bz		cmdSetFlame
+	xorlw	RS232_CMD_SET_SYM_BOILER^RS232_CMD_SET_SYM_FLAME
+	bz		cmdSetBoiler
+	bra		cmdResetState ;unknown command
+	
+cmdSetTemp:
 	movf	myCmdThermostat,w,BANKED
 	bz		cmdSet0
 	decf	WREG,f,ACCESS
@@ -239,19 +193,6 @@ cmdSetpointLf: ;check for lf and execute
 	bz		cmdSet6
 	decf	WREG,f,ACCESS
 	bz		cmdSet7
-;;possible fall true when myCmdThermostat is > 7
-;in the middle for branch instructions
-cmdResetState:
-	clrf	myCmdState,BANKED
-	bra		cmdDone
-
-cmdSetState:
-	movwf	myCmdState,BANKED
-	bra		cmdDone
-cmdNextState:
-	incf	myCmdState,f,BANKED
-cmdDone:
-	return
 
 cmdSet0:
 	movff	myCmdData+LOW_BYTE,myCmd0Setpoint+LOW_BYTE
@@ -288,86 +229,162 @@ cmdSet7:
 cmdSetpointDone:
 	bra		cmdResetState
 
-cmdSym: ;state unused, remove
-	bra		cmdResetState
-			
-cmdSymD0:
-	movff	rxbyte,myCmdData+LOW_BYTE
-	bra		cmdNextState				
-cmdSymCr:
-	movf	rxbyte,w
-	xorlw	RS232_CR
-	bz		cmdNextState
-	bra		cmdResetState				
-cmdSymLf:		;check for lf and execute
-	movf	rxbyte,w
-	xorlw	RS232_LF
-	bnz		cmdResetState
-	;;execute command here
+
+	
+
+;in the middle for branch instructions
+cmdResetState:
+	clrf	myCmdState,BANKED
+	bra		cmdDone
+
+cmdSetState:
+	movwf	myCmdState,BANKED
+	bra		cmdDone
+cmdNextState:
+	incf	myCmdState,f,BANKED
+cmdDone:
+	return
+
+cmdSetFlame:
 	movf	myCmdThermostat,w,BANKED
-	bz		cmdSym0
+	bz		cmdFlame0
 	decf	WREG,f,ACCESS
-	bz		cmdSym1
+	bz		cmdFlame1
 	decf	WREG,f,ACCESS
-	bz		cmdSym2
+	bz		cmdFlame2
 	decf	WREG,f,ACCESS
-	bz		cmdSym3
+	bz		cmdFlame3
 	decf	WREG,f,ACCESS
-	bz		cmdSym4
+	bz		cmdFlame4
 	decf	WREG,f,ACCESS
-	bz		cmdSym5
+	bz		cmdFlame5
 	decf	WREG,f,ACCESS
-	bz		cmdSym6
+	bz		cmdFlame6
 	decf	WREG,f,ACCESS
-	bz		cmdSym7
-
-cmdSym0:
-	movf	myCmdData+LOW_BYTE,w,BANKED
-	xorlw	'0'
-	bz		
-
+	bz		cmdFlame7
+	
+cmdFlame0:
 	bcf		bit0SymFlame
-	btfsc	bitCmdSymFlame
-	bsf 	bit0SymFlame
-	bra		cmdSymDone
-cmdSym1:
+	movf	myCmdData+LOW_BYTE,w,BANKED
+	btfss	Zero
+	bsf		bit0SymFlame
+	bra		cmdFlameDone
+cmdFlame1:
 	bcf		bit1SymFlame
-	btfsc	bitCmdSymFlame
-	bsf 	bit1SymFlame
-	bra		cmdSymDone
-cmdSym2:
+	movf	myCmdData+LOW_BYTE,w,BANKED
+	btfss	Zero
+	bsf		bit1SymFlame
+	bra		cmdFlameDone
+cmdFlame2:
 	bcf		bit2SymFlame
-	btfsc	bitCmdSymFlame
-	bsf 	bit2SymFlame
-	bra		cmdSymDone
-cmdSym3:
+	movf	myCmdData+LOW_BYTE,w,BANKED
+	btfss	Zero
+	bsf		bit2SymFlame
+	bra		cmdFlameDone
+cmdFlame3:
 	bcf		bit3SymFlame
-	btfsc	bitCmdSymFlame
-	bsf 	bit3SymFlame
-	bra		cmdSymDone
-cmdSym4:
+	movf	myCmdData+LOW_BYTE,w,BANKED
+	btfss	Zero
+	bsf		bit3SymFlame
+	bra		cmdFlameDone
+cmdFlame4:
 	bcf		bit4SymFlame
-	btfsc	bitCmdSymFlame
-	bsf 	bit4SymFlame
-	bra		cmdSymDone
-cmdSym5:
+	movf	myCmdData+LOW_BYTE,w,BANKED
+	btfss	Zero
+	bsf		bit4SymFlame
+	bra		cmdFlameDone
+cmdFlame5:
 	bcf		bit5SymFlame
-	btfsc	bitCmdSymFlame
-	bsf 	bit5SymFlame
-	bra		cmdSymDone
-cmdSym6:
+	movf	myCmdData+LOW_BYTE,w,BANKED
+	btfss	Zero
+	bsf		bit5SymFlame
+	bra		cmdFlameDone
+cmdFlame6:
 	bcf		bit6SymFlame
-	btfsc	bitCmdSymFlame
-	bsf 	bit6SymFlame
-	bra		cmdSymDone
-cmdSym7:
+	movf	myCmdData+LOW_BYTE,w,BANKED
+	btfss	Zero
+	bsf		bit6SymFlame
+	bra		cmdFlameDone
+cmdFlame7:
 	bcf		bit7SymFlame
-	btfsc	bitCmdSymFlame
-	bsf 	bit7SymFlame
-	bra		cmdSymDone
-cmdSymDone:
+	movf	myCmdData+LOW_BYTE,w,BANKED
+	btfss	Zero
+	bsf		bit7SymFlame
+	;bra		cmdFlameDone
+cmdFlameDone:
 	bra		cmdResetState
-		
+
+
+	
+cmdSetBoiler:
+	movf	myCmdThermostat,w,BANKED
+	bz		cmdBoiler0
+	decf	WREG,f,ACCESS
+	bz		cmdBoiler1
+	decf	WREG,f,ACCESS
+	bz		cmdBoiler2
+	decf	WREG,f,ACCESS
+	bz		cmdBoiler3
+	decf	WREG,f,ACCESS
+	bz		cmdBoiler4
+	decf	WREG,f,ACCESS
+	bz		cmdBoiler5
+	decf	WREG,f,ACCESS
+	bz		cmdBoiler6
+	decf	WREG,f,ACCESS
+	bz		cmdBoiler7	
+	
+cmdBoiler0:
+	bcf		bit0SymBoil
+	movf	myCmdData+LOW_BYTE,w,BANKED
+	btfss	Zero
+	bsf		bit0SymBoil
+	bra		cmdBoilDone
+cmdBoiler1:
+	bcf		bit1SymBoil
+	movf	myCmdData+LOW_BYTE,w,BANKED
+	btfss	Zero
+	bsf		bit1SymBoil
+	bra		cmdBoilDone
+cmdBoiler2:
+	bcf		bit2SymBoil
+	movf	myCmdData+LOW_BYTE,w,BANKED
+	btfss	Zero
+	bsf		bit2SymBoil
+	bra		cmdBoilDone
+cmdBoiler3:
+	bcf		bit3SymBoil
+	movf	myCmdData+LOW_BYTE,w,BANKED
+	btfss	Zero
+	bsf		bit3SymBoil
+	bra		cmdBoilDone
+cmdBoiler4:
+	bcf		bit4SymBoil
+	movf	myCmdData+LOW_BYTE,w,BANKED
+	btfss	Zero
+	bsf		bit4SymBoil
+	bra		cmdBoilDone
+cmdBoiler5:
+	bcf		bit5SymBoil
+	movf	myCmdData+LOW_BYTE,w,BANKED
+	btfss	Zero
+	bsf		bit5SymBoil
+	bra		cmdBoilDone
+cmdBoiler6:
+	bcf		bit6SymBoil
+	movf	myCmdData+LOW_BYTE,w,BANKED
+	btfss	Zero
+	bsf		bit6SymBoil
+	bra		cmdBoilDone
+cmdBoiler7:
+	bcf		bit7SymBoil
+	movf	myCmdData+LOW_BYTE,w,BANKED
+	btfss	Zero
+	bsf		bit7SymBoil
+	;bra		cmdBoilDone
+cmdBoilDone:
+	bra		cmdResetState
+
 cmdAliveCr:
 	movf	rxbyte,w
 	xorlw	RS232_CR
@@ -379,5 +396,4 @@ cmdAliveLf:
 	bnz		cmdResetState
 	;;execute command here
 	bra		cmdResetState
-
 

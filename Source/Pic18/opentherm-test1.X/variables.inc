@@ -56,10 +56,8 @@
 		myCmdState:1	;serial command handler
 		myCmdThermostat
 		myCmdData:2
-		myCmdFlags:1
+		myCmd
 	endc
-	#define bitCmdSymBoil	myCmdFlags,0
-	#define bitCmdSymFlame	myCmdFlags,1
 
 	cblock
 		reg0:1	
