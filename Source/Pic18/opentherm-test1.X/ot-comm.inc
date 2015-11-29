@@ -117,6 +117,8 @@ commJumps:
 	#define bitRxBusy			bitRx0Busy
 	#define bitTxStart			bitTx0Start
 	#define bitTxBusy			bitTx0Busy
+	#define bitSymBoil			bit0SymBoil
+	#define bitSymFlame			bit0SymFlame
 	#include ot-comm-states.inc
 #endif
 
@@ -169,6 +171,8 @@ commJumps:
 	#define bitRxBusy			bitRx1Busy
 	#define bitTxStart			bitTx1Start
 	#define bitTxBusy			bitTx1Busy
+	#define bitSymBoil			bit1SymBoil
+	#define bitSymFlame			bit1SymFlame
 	#include ot-comm-states.inc
 #endif
 
@@ -221,6 +225,8 @@ commJumps:
 	#define bitRxBusy			bitRx2Busy
 	#define bitTxStart			bitTx2Start
 	#define bitTxBusy			bitTx2Busy
+	#define bitSymBoil			bit2SymBoil
+	#define bitSymFlame			bit2SymFlame
 	#include ot-comm-states.inc
 #endif
 
@@ -273,6 +279,8 @@ commJumps:
 	#define bitRxBusy			bitRx3Busy
 	#define bitTxStart			bitTx3Start
 	#define bitTxBusy			bitTx3Busy
+	#define bitSymBoil			bit3SymBoil
+	#define bitSymFlame			bit3SymFlame
 	#include ot-comm-states.inc
 #endif
 
@@ -325,6 +333,8 @@ commJumps:
 	#define bitRxBusy			bitRx4Busy
 	#define bitTxStart			bitTx4Start
 	#define bitTxBusy			bitTx4Busy
+	#define bitSymBoil			bit4SymBoil
+	#define bitSymFlame			bit4SymFlame
 	#include ot-comm-states.inc
 #endif
 
@@ -377,6 +387,8 @@ commJumps:
 	#define bitRxBusy			bitRx5Busy
 	#define bitTxStart			bitTx5Start
 	#define bitTxBusy			bitTx5Busy
+	#define bitSymBoil			bit5SymBoil
+	#define bitSymFlame			bit5SymFlame
 	#include ot-comm-states.inc
 #endif
 
@@ -429,6 +441,8 @@ commJumps:
 	#define bitRxBusy			bitRx6Busy
 	#define bitTxStart			bitTx6Start
 	#define bitTxBusy			bitTx6Busy
+	#define bitSymBoil			bit6SymBoil
+	#define bitSymFlame			bit6SymFlame
 	#include ot-comm-states.inc
 #endif
 
@@ -481,6 +495,8 @@ commJumps:
 	#define bitRxBusy			bitRx7Busy
 	#define bitTxStart			bitTx7Start
 	#define bitTxBusy			bitTx7Busy
+	#define bitSymBoil			bit7SymBoil
+	#define bitSymFlame			bit7SymFlame
 	#include ot-comm-states.inc
 #endif
 	return

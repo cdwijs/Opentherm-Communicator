@@ -109,6 +109,8 @@
 		#define bitRx0Busy			my0Flags,3
 		#define bitComm0StartMsg	my0Flags,4
 		#define bitComm0Busy		my0Flags,5
+		#define bit0SymBoil		my0Flags,6
+		#define bit0SymFlame		my0Flags,7
 		cblock
 			my0Flags:1
 			myTx0State:1
@@ -129,6 +131,8 @@
 		#define bitRx1Busy			my1Flags,3
 		#define bitComm1StartMsg	my1Flags,4
 		#define bitComm1Busy		my1Flags,5
+		#define bit1SymBoil		my1Flags,6
+		#define bit1SymFlame		my1Flags,7
 		cblock
 			my1Flags:1
 			myTx1State:1
@@ -149,6 +153,8 @@
 		#define bitRx2Busy			my2Flags,3
 		#define bitComm2StartMsg	my2Flags,4
 		#define bitComm2Busy		my2Flags,5
+		#define bit2SymBoil		my2Flags,6
+		#define bit2SymFlame		my2Flags,7
 		cblock
 			my2Flags:1
 			myTx2State:1
@@ -169,6 +175,8 @@
 		#define bitRx3Busy			my3Flags,3
 		#define bitComm3StartMsg	my3Flags,4
 		#define bitComm3Busy		my3Flags,5
+		#define bit3SymBoil		my3Flags,6
+		#define bit3SymFlame		my3Flags,7
 		cblock
 			my3Flags:1
 			myTx3State:1
@@ -189,6 +197,8 @@
 		#define bitRx4Busy			my4Flags,3
 		#define bitComm4StartMsg	my4Flags,4
 		#define bitComm4Busy		my4Flags,5
+		#define bit4SymBoil		my4Flags,6
+		#define bit4SymFlame		my4Flags,7
 		cblock
 			my4Flags:1
 			myTx4State:1
@@ -209,6 +219,8 @@
 		#define bitRx5Busy			my5Flags,3
 		#define bitComm5StartMsg	my5Flags,4
 		#define bitComm5Busy		my5Flags,5
+		#define bit5SymBoil		my5Flags,6
+		#define bit5SymFlame		my5Flags,7
 		cblock
 			my5Flags:1
 			myTx5State:1
@@ -229,6 +241,8 @@
 		#define bitRx6Busy			my6Flags,3
 		#define bitComm6StartMsg	my6Flags,4
 		#define bitComm6Busy		my6Flags,5
+		#define bit6SymBoil		my6Flags,6
+		#define bit6SymFlame		my6Flags,7
 		cblock
 			my6Flags:1
 			myTx6State:1
@@ -249,6 +263,8 @@
 		#define bitRx7Busy			my7Flags,3
 		#define bitComm7StartMsg	my7Flags,4
 		#define bitComm7Busy		my7Flags,5
+		#define bit7SymBoil		my7Flags,6
+		#define bit7SymFlame		my7Flags,7
 		cblock
 			my7Flags:1
 			myTx7State:1

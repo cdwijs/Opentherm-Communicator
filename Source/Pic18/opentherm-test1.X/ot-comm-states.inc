@@ -214,9 +214,12 @@ commStateCheckMessageID:
 	bra		commNextState
 	
 commIdSlaveFlags:
+	bcf		myTxBuffer+OFFSET_DATA_LOW,1,BANKED ;disable CH mode
+	bcf		myTxBuffer+OFFSET_DATA_LOW,3,BANKED ;disable flame (seems to only work in combination with bit1)
+	btfsc	bitSymFlame,BANKED 
+	bra		commStateCheckKnown
 	bsf		myTxBuffer+OFFSET_DATA_LOW,1,BANKED ;enable CH mode
 	bsf		myTxBuffer+OFFSET_DATA_LOW,3,BANKED ;enable flame (seems to only work in combination with bit1)
-;	bsf		myTxBuffer+OFFSET_DATA_LOW,5,BANKED ;enable CH2 mode
 	bra		commStateCheckKnown
 commIdTempSetpoint:
 	bra		commStateCheckKnown
@@ -483,4 +486,6 @@ commDone:
 #undefine bitRxStart			
 #undefine bitRxBusy			
 #undefine bitTxStart			
-#undefine bitTxBusy			
+#undefine bitTxBusy
+#undefine bitSymBoil
+#undefine bitSymFlame		

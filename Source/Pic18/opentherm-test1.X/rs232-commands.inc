@@ -218,20 +218,6 @@ cmdSetpointCr:
 	bz		cmdNextState
 	bra		cmdResetState
 
-;in the middle for branch instructions
-cmdResetState:
-	clrf	myCmdState,BANKED
-	bra		cmdDone
-
-cmdSetState:
-	movwf	myCmdState,BANKED
-	bra		cmdDone
-cmdNextState:
-	incf	myCmdState,f,BANKED
-cmdDone:
-	return
-
-
 cmdSetpointLf: ;check for lf and execute
 	movf	rxbyte,w
 	xorlw	RS232_LF
@@ -253,6 +239,19 @@ cmdSetpointLf: ;check for lf and execute
 	bz		cmdSet6
 	decf	WREG,f,ACCESS
 	bz		cmdSet7
+;;possible fall true when myCmdThermostat is > 7
+;in the middle for branch instructions
+cmdResetState:
+	clrf	myCmdState,BANKED
+	bra		cmdDone
+
+cmdSetState:
+	movwf	myCmdState,BANKED
+	bra		cmdDone
+cmdNextState:
+	incf	myCmdState,f,BANKED
+cmdDone:
+	return
 
 cmdSet0:
 	movff	myCmdData+LOW_BYTE,myCmd0Setpoint+LOW_BYTE
@@ -323,20 +322,48 @@ cmdSymLf:		;check for lf and execute
 	bz		cmdSym7
 
 cmdSym0:
+	movf	myCmdData+LOW_BYTE,w,BANKED
+	xorlw	'0'
+	bz		
+
+	bcf		bit0SymFlame
+	btfsc	bitCmdSymFlame
+	bsf 	bit0SymFlame
 	bra		cmdSymDone
 cmdSym1:
+	bcf		bit1SymFlame
+	btfsc	bitCmdSymFlame
+	bsf 	bit1SymFlame
 	bra		cmdSymDone
 cmdSym2:
+	bcf		bit2SymFlame
+	btfsc	bitCmdSymFlame
+	bsf 	bit2SymFlame
 	bra		cmdSymDone
 cmdSym3:
+	bcf		bit3SymFlame
+	btfsc	bitCmdSymFlame
+	bsf 	bit3SymFlame
 	bra		cmdSymDone
 cmdSym4:
+	bcf		bit4SymFlame
+	btfsc	bitCmdSymFlame
+	bsf 	bit4SymFlame
 	bra		cmdSymDone
 cmdSym5:
+	bcf		bit5SymFlame
+	btfsc	bitCmdSymFlame
+	bsf 	bit5SymFlame
 	bra		cmdSymDone
 cmdSym6:
+	bcf		bit6SymFlame
+	btfsc	bitCmdSymFlame
+	bsf 	bit6SymFlame
 	bra		cmdSymDone
 cmdSym7:
+	bcf		bit7SymFlame
+	btfsc	bitCmdSymFlame
+	bsf 	bit7SymFlame
 	bra		cmdSymDone
 cmdSymDone:
 	bra		cmdResetState
