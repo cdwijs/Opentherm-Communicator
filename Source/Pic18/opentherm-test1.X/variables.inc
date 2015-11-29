@@ -1,6 +1,6 @@
 ;*******************************************************************************
 ;    variables.inc                                                             *
-;    Copyright 2013 Cedric de Wijs.                                            *
+;    Copyright 2013-2014 Cedric de Wijs.                                       *
 ;                                                                              *
 ;    This file is part of Opentherm Communicator                               *
 ;                                                                              *
@@ -33,6 +33,9 @@
 #define RAMSTART_ACCESS	h'00'
 #define SERIAL_BUF_SIZE h'20' ;must be power of 2
 #define SERIAL_BUF_MASK (SERIAL_BUF_SIZE-1)
+#define HIGH_BYTE	d'1' ;for constructions like: 
+#define LOW_BYTE	d'0' ;movf	myCmdSetpoint+LOW_BYTE,w,BANKED
+
 
 	cblock	RAMSTART_ACCESS
 		myPrescale1msec:1		;timing
@@ -45,8 +48,18 @@
 		myRs232TxBuf:SERIAL_BUF_SIZE	;serial port
 		myRs232TxProducer
 		myRs232TxConsumer
+		myRs232RxBuf:SERIAL_BUF_SIZE	;serial port
+		myRs232RxProducer
+		myRs232RxConsumer
 	endc
-
+	cblock
+		myCmdState:1	;serial command handler
+		myCmdThermostat
+		myCmdData:2
+		myCmdFlags:1
+	endc
+	#define bitCmdSymBoil	myCmdFlags,0
+	#define bitCmdSymFlame	myCmdFlags,1
 
 	cblock
 		reg0:1	
@@ -106,6 +119,7 @@
 			myRx0Buffer:4
 			myComm0State:1
 			myComm0Timer:1
+			myCmd0Setpoint:2
 		endc
 	#endif
 	#ifdef USE_CHANNEL_1
@@ -125,6 +139,7 @@
 			myRx1Buffer:4
 			myComm1State:1
 			myComm1Timer:1
+			myCmd1Setpoint:2
 		endc
 	#endif
 	#ifdef USE_CHANNEL_2
@@ -144,6 +159,7 @@
 			myRx2Buffer:4
 			myComm2State:1
 			myComm2Timer:1
+			myCmd2Setpoint:2
 		endc
 	#endif
 	#ifdef USE_CHANNEL_3
@@ -163,6 +179,7 @@
 			myRx3Buffer:4
 			myComm3State:1
 			myComm3Timer:1
+			myCmd3Setpoint:2
 		endc
 	#endif
 	#ifdef USE_CHANNEL_4
@@ -182,6 +199,7 @@
 			myRx4Buffer:4
 			myComm4State:1
 			myComm4Timer:1
+			myCmd4Setpoint:2
 		endc
 	#endif
 	#ifdef USE_CHANNEL_5
@@ -201,6 +219,7 @@
 			myRx5Buffer:4
 			myComm5State:1
 			myComm5Timer:1
+			myCmd5Setpoint:2
 		endc
 	#endif
 	#ifdef USE_CHANNEL_6
@@ -220,6 +239,7 @@
 			myRx6Buffer:4
 			myComm6State:1
 			myComm6Timer:1
+			myCmd6Setpoint:2
 		endc
 	#endif
 	#ifdef USE_CHANNEL_7
@@ -239,6 +259,7 @@
 			myRx7Buffer:4
 			myComm7State:1
 			myComm7Timer:1
+			myCmd7Setpoint:2
 		endc
 	#endif
 
@@ -266,10 +287,6 @@ varLoop:
 	movwf	myComm5State	
 	movwf	myComm6State
 	movwf	myComm7State
-
-	
-
-
 #endif
 	return
 

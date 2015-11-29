@@ -1,6 +1,6 @@
 ;*******************************************************************************
 ;    io.inc                                                                    *
-;    Copyright 2013 Cedric de Wijs.                                            *
+;    Copyright 2013-2014 Cedric de Wijs.                                       *
 ;                                                                              *
 ;    This file is part of Opentherm Communicator                               *
 ;                                                                              *
@@ -30,8 +30,6 @@
 ;    OpenTherm,OpenTherm/Plus,OpenTherm/Lite and the OpenTherm logo are        *
 ;    registered trademarks of The OpenTherm Association.                       *
 ;*******************************************************************************
-;add ansel inits for all ports
-
 ;PORTA	Tris	Port	ANSEL
 ;7	Rx7	1 (in)	0		0 digital
 ;6	Rx6	1 (in)	0		0 digital
@@ -44,50 +42,54 @@
 #define INIT_TRISA b'11111111'
 #define INIT_PORTA b'00000000'
 #define INIT_ANSELA b'0000000'
-;PORTB	Tris	Port
-;7	Tx7	0 (out)	1 (low-active)
-;6	Tx6	0 (out)	1 (low-active)
-;5	Tx5	0 (out)	1 (low-active)
-;4	Tx4	0 (out)	1 (low-active)
-;3	Tx3	0 (out)	1 (low-active)
-;2	Tx2	0 (out)	1 (low-active)
-;1	Tx1	0 (out)	1 (low-active)
-;0	Tx0	0 (out)	1 (low-active)
-#define INIT_TRISB	b'00000000'
-#define INIT_PORTB	b'11111111'
-;PORTC			Tris	Port
-;7	RS232-RX	1		0	;tx1 and rx1 pins
-;6	RS232-TX	0		0	;keep tris as output as long as possible, otherwize EMC problems
-;5	-			1		0
-;4	-			1		0
-;3	-			1		0
-;2	-			1		0
-;1	-			1		0
-;0	-			1		0
-#define INIT_TRISC	b'10111111'
-#define INIT_PORTC	b'01000000'
-;PORTD			Tris	Port
-;7	-			1		0
-;6	-			1		0
-;5	-			1		0
-;4	-			1		0
-;3	-			1		0
-;2	-			1		0
-;1	-			1		0
-;0	-			1		0
+;PORTB	Tris	Port			ANSEL
+;7	-	1		0				0 digital
+;6	-	1		0				0 digital
+;5	Tx5	0 (out)	1 (low-active)	0 digital
+;4	Tx4	0 (out)	1 (low-active)	0 digital
+;3	Tx3	0 (out)	1 (low-active)	0 digital
+;2	Tx2	0 (out)	1 (low-active)	0 digital
+;1	Tx1	0 (out)	1 (low-active)	0 digital
+;0	Tx0	0 (out)	1 (low-active)	0 digital
+#define INIT_TRISB	b'11000000'
+#define INIT_PORTB	b'00111111'
+#define INIT_ANSELB b'00000000'
+;PORTC			Tris	Port			ANSEL
+;7	RS232-RX	1		0				0 digital	;tx1 and rx1 pins
+;6	RS232-TX	0		0				0 digital	;keep tris as output as long as possible, otherwise EMC problems
+;5	-			1		0				0 digital
+;4	-			1		0				0 digital
+;3	-			1		0				0 digital
+;2	-			1		0				0 digital
+;1	Tx7			0 (out)	1 (low-active)	0 digital
+;0	Tx6			0 (out)	1 (low-active)	0 digital
+#define INIT_TRISC	b'10111100'
+#define INIT_PORTC	b'01000011'
+#define INIT_ANSELC b'00000000'
+;PORTD			Tris	Port	ANSEL
+;7	-			1		0		0 digital	
+;6	-			1		0		0 digital
+;5	-			1		0		0 digital
+;4	-			1		0		0 digital
+;3	-			1		0		0 digital
+;2	-			1		0		0 digital
+;1	-			1		0		0 digital
+;0	-			1		0		0 digital
 #define INIT_TRISD	b'11111111'
 #define INIT_PORTD	b'00000000'
-;PORTE			Tris	Port
-;7	-			1		0
-;6	-			1		0
-;5	-			1		0
-;4	-			1		0
-;3	-			1		0
-;2	-			1		0
-;1	-			1		0
-;0	-			1		0
+#define INIT_ANSELD b'00000000'
+;PORTE			Tris	Port	ANSEL
+;7	-			1		0		0 digital
+;6	-			1		0		0 digital
+;5	-			1		0		0 digital
+;4	-			1		0		0 digital
+;3	-			1		0		0 digital
+;2	-			1		0		0 digital
+;1	-			1		0		0 digital
+;0	-			1		0		0 digital
 #define INIT_TRISE	b'11111111'
 #define INIT_PORTE	b'00000000'
+#define INIT_ANSELE b'00000000'
 
 #define INPUT_INVERTED	;>11V is seen by the uC as a 0, <11V is seen by the uC as a 1 
 #define OUTPUT_INVERTED ;a 0 from the uC is send as 20mA, a 1 from the uC is send as 7mA
@@ -99,7 +101,7 @@
 #define USE_CHANNEL_4
 #define USE_CHANNEL_5
 #define USE_CHANNEL_6
-;define USE_CHANNEL_7
+#define USE_CHANNEL_7
 
 #ifdef USE_CHANNEL_0
 	#define pinInRx0	myPortaNow,RA0
@@ -134,12 +136,12 @@
 #ifdef USE_CHANNEL_6
 	#define pinInRx6	myPortaNow,RA6
 	#define edgeRx6		myPortaEdge,RA6
-	#define pinOutTx6	LATB,LATB6	;shared with PGC
+	#define pinOutTx6	LATC,LATC0
 #endif
 #ifdef USE_CHANNEL_7
 	#define pinInRx7	myPortaNow,RA7 ;ra7 does not exist on pic18F4550
 	#define edgeRx7		myPortaEdge,RA7
-	#define pinOutTx7	LATB,LATB7	;shared with PGD
+	#define pinOutTx7	LATC,LATC1
 #endif
 
 #define INPUTS_ON_PORTA
@@ -149,7 +151,6 @@
 ;define INPUTS_ON_PORTE
 
 ioInit:
-	;cdw, add init values for all the ansel registers
 	movlb	BANK_SFR
 	movlw	INIT_PORTA
 	movwf	PORTA,	ACCESS
@@ -158,6 +159,14 @@ ioInit:
 #ifdef P18F2x4xK22
 	movlw	INIT_ANSELA
 	movwf	ANSELA,	BANKED
+	movlw	INIT_ANSELB
+	movwf	ANSELB,	BANKED
+	movlw	INIT_ANSELC
+	movwf	ANSELC,	BANKED
+	movlw	INIT_ANSELD
+	movwf	ANSELD,	BANKED
+	movlw	INIT_ANSELE
+	movwf	ANSELE,	BANKED
 #endif
 #ifdef P18F2455_2550_4455_4550
 	MOVLW	0Fh				; Configure A/D

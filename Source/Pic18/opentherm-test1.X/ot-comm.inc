@@ -1,6 +1,6 @@
 ;*******************************************************************************
 ;    ot-comm.inc                                                               *
-;    Copyright 2013 Cedric de Wijs.                                            *
+;    Copyright 2013-2014 Cedric de Wijs.                                       *
 ;                                                                              *
 ;    This file is part of Opentherm Communicator                               *
 ;                                                                              *
@@ -87,6 +87,7 @@ commJumps:
 	#define commIdMaxRelMod				comm0IdMaxRelMod
 	#define commIdMaxBoilerCapacity		comm0IdMaxBoilerCapacity
 	#define commIdRoomSetpoint			comm0IdRoomSetpoint
+	#define commIdRoomSetpointDiff		comm0IdRoomSetpointDiff
 	#define commIdRelModLevel			comm0IdRelModLevel
 	#define commIdWaterPressInCh		comm0IdWaterPressInCh
 	#define commIdDayOfWeek				comm0IdDayOfWeek
@@ -108,6 +109,7 @@ commJumps:
 	#define myCommTimer			myComm0Timer
 	#define myRxBuffer			myRx0Buffer
 	#define myTxBuffer			myTx0Buffer
+	#define myCmdSetpoint		myCmd0Setpoint
 	;bits
 	#define bitCommBusy			bitComm0Busy
 	#define bitCommStartMsg		bitComm0StartMsg
@@ -137,6 +139,7 @@ commJumps:
 	#define commIdMaxRelMod				comm1IdMaxRelMod
 	#define commIdMaxBoilerCapacity		comm1IdMaxBoilerCapacity
 	#define commIdRoomSetpoint			comm1IdRoomSetpoint
+	#define commIdRoomSetpointDiff		comm1IdRoomSetpointDiff
 	#define commIdRelModLevel			comm1IdRelModLevel
 	#define commIdWaterPressInCh		comm1IdWaterPressInCh
 	#define commIdDayOfWeek				comm1IdDayOfWeek
@@ -158,6 +161,7 @@ commJumps:
 	#define myCommTimer			myComm1Timer
 	#define myRxBuffer			myRx1Buffer
 	#define myTxBuffer			myTx1Buffer
+	#define myCmdSetpoint		myCmd1Setpoint
 	;bits
 	#define bitCommBusy			bitComm1Busy
 	#define bitCommStartMsg		bitComm1StartMsg
@@ -187,6 +191,7 @@ commJumps:
 	#define commIdMaxRelMod				comm2IdMaxRelMod
 	#define commIdMaxBoilerCapacity		comm2IdMaxBoilerCapacity
 	#define commIdRoomSetpoint			comm2IdRoomSetpoint
+	#define commIdRoomSetpointDiff		comm2IdRoomSetpointDiff
 	#define commIdRelModLevel			comm2IdRelModLevel
 	#define commIdWaterPressInCh		comm2IdWaterPressInCh
 	#define commIdDayOfWeek				comm2IdDayOfWeek
@@ -208,6 +213,7 @@ commJumps:
 	#define myCommTimer			myComm2Timer
 	#define myRxBuffer			myRx2Buffer
 	#define myTxBuffer			myTx2Buffer
+	#define myCmdSetpoint		myCmd2Setpoint
 	;bits
 	#define bitCommBusy			bitComm2Busy
 	#define bitCommStartMsg		bitComm2StartMsg
@@ -237,6 +243,7 @@ commJumps:
 	#define commIdMaxRelMod				comm3IdMaxRelMod
 	#define commIdMaxBoilerCapacity		comm3IdMaxBoilerCapacity
 	#define commIdRoomSetpoint			comm3IdRoomSetpoint
+	#define commIdRoomSetpointDiff		comm3IdRoomSetpointDiff
 	#define commIdRelModLevel			comm3IdRelModLevel
 	#define commIdWaterPressInCh		comm3IdWaterPressInCh
 	#define commIdDayOfWeek				comm3IdDayOfWeek
@@ -258,6 +265,7 @@ commJumps:
 	#define myCommTimer			myComm3Timer
 	#define myRxBuffer			myRx3Buffer
 	#define myTxBuffer			myTx3Buffer
+	#define myCmdSetpoint		myCmd3Setpoint
 	;bits
 	#define bitCommBusy			bitComm3Busy
 	#define bitCommStartMsg		bitComm3StartMsg
@@ -287,6 +295,7 @@ commJumps:
 	#define commIdMaxRelMod				comm4IdMaxRelMod
 	#define commIdMaxBoilerCapacity		comm4IdMaxBoilerCapacity
 	#define commIdRoomSetpoint			comm4IdRoomSetpoint
+	#define commIdRoomSetpointDiff		comm4IdRoomSetpointDiff
 	#define commIdRelModLevel			comm4IdRelModLevel
 	#define commIdWaterPressInCh		comm4IdWaterPressInCh
 	#define commIdDayOfWeek				comm4IdDayOfWeek
@@ -308,6 +317,7 @@ commJumps:
 	#define myCommTimer			myComm4Timer
 	#define myRxBuffer			myRx4Buffer
 	#define myTxBuffer			myTx4Buffer
+	#define myCmdSetpoint		myCmd4Setpoint
 	;bits
 	#define bitCommBusy			bitComm4Busy
 	#define bitCommStartMsg		bitComm4StartMsg
@@ -337,6 +347,7 @@ commJumps:
 	#define commIdMaxRelMod				comm5IdMaxRelMod
 	#define commIdMaxBoilerCapacity		comm5IdMaxBoilerCapacity
 	#define commIdRoomSetpoint			comm5IdRoomSetpoint
+	#define commIdRoomSetpointDiff		comm5IdRoomSetpointDiff
 	#define commIdRelModLevel			comm5IdRelModLevel
 	#define commIdWaterPressInCh		comm5IdWaterPressInCh
 	#define commIdDayOfWeek				comm5IdDayOfWeek
@@ -358,6 +369,7 @@ commJumps:
 	#define myCommTimer			myComm5Timer
 	#define myRxBuffer			myRx5Buffer
 	#define myTxBuffer			myTx5Buffer
+	#define myCmdSetpoint		myCmd5Setpoint
 	;bits
 	#define bitCommBusy			bitComm5Busy
 	#define bitCommStartMsg		bitComm5StartMsg
@@ -387,6 +399,7 @@ commJumps:
 	#define commIdMaxRelMod				comm6IdMaxRelMod
 	#define commIdMaxBoilerCapacity		comm6IdMaxBoilerCapacity
 	#define commIdRoomSetpoint			comm6IdRoomSetpoint
+	#define commIdRoomSetpointDiff		comm6IdRoomSetpointDiff
 	#define commIdRelModLevel			comm6IdRelModLevel
 	#define commIdWaterPressInCh		comm6IdWaterPressInCh
 	#define commIdDayOfWeek				comm6IdDayOfWeek
@@ -408,6 +421,7 @@ commJumps:
 	#define myCommTimer			myComm6Timer
 	#define myRxBuffer			myRx6Buffer
 	#define myTxBuffer			myTx6Buffer
+	#define myCmdSetpoint		myCmd6Setpoint
 	;bits
 	#define bitCommBusy			bitComm6Busy
 	#define bitCommStartMsg		bitComm6StartMsg
@@ -437,6 +451,7 @@ commJumps:
 	#define commIdMaxRelMod				comm7IdMaxRelMod
 	#define commIdMaxBoilerCapacity		comm7IdMaxBoilerCapacity
 	#define commIdRoomSetpoint			comm7IdRoomSetpoint
+	#define commIdRoomSetpointDiff		comm7IdRoomSetpointDiff
 	#define commIdRelModLevel			comm7IdRelModLevel
 	#define commIdWaterPressInCh		comm7IdWaterPressInCh
 	#define commIdDayOfWeek				comm7IdDayOfWeek
@@ -458,6 +473,7 @@ commJumps:
 	#define myCommTimer			myComm7Timer
 	#define myRxBuffer			myRx7Buffer
 	#define myTxBuffer			myTx7Buffer
+	#define myCmdSetpoint		myCmd7Setpoint
 	;bits
 	#define bitCommBusy			bitComm7Busy
 	#define bitCommStartMsg		bitComm7StartMsg

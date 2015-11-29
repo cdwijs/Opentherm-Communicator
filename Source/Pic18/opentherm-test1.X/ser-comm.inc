@@ -1,5 +1,5 @@
 ;*******************************************************************************
-;    ot-communicator.asm                                                       *
+;    ser-comm.inc                                                              *
 ;    Copyright 2013-2014 Cedric de Wijs.                                       *
 ;                                                                              *
 ;    This file is part of Opentherm Communicator                               *
@@ -30,45 +30,32 @@
 ;    OpenTherm,OpenTherm/Plus,OpenTherm/Lite and the OpenTherm logo are        *
 ;    registered trademarks of The OpenTherm Association.                       *
 ;*******************************************************************************
-;debug directives:
-;define DEBUG_LOOPBACK_TEST
-;define DEBUG_RS232_SPACES
-;define RS232_GREETING
-;define TIMING_CHECK
-;define DEBUG_NO_SERIAL_REPORT
-;define DEBUG_SERIAL
-
-#include config.inc
+;This state machine handles commands from the serial port.
+;The following commands are implemented:
+;Update room setpoint.
+;Set flame symbol
+;Set boiler symbol
+;Set Home signal
+;Heartbeat
 
 
-resetvect: 	org 0x0000		
-	goto	myreset
+#define commStateIdle			commState0
+#define COMM_STATE_IDLE			d'0'
+#define commStateWaitAnswer		commState1
+#define commStateCheckMessageA	commState2
+#define commStateCheckMessageID	commState3
+#define commStateSetupAnswer	commState4
+#define commStateReport			commState5
+#define commStateWaitSend		commState6
+#define commStateSendAnswer		commState7
 
-intHi:		org 0x0008
-	goto	interruptHigh
-
-intLo:		org 0x0018
-	goto	interruptLow
-
-myreset: org 0x01fe		;prepare for bootloader
-	call	variablesInit
-	call	ioInit
-	call	timingInit
-	call	serialInit
-	call	interruptInit
-mainloop:
-	clrwdt
-	call	commJumps
-	call	CmdJump
-	goto	mainloop
-
-#include io.inc
-#include variables.inc
-#include timing.inc
-#include interrupt.inc   
-#include manchester.inc
-#include ot-comm.inc
-#include serial.inc
-#include rs232-commands.inc
-#include system.inc
-    END
+	movf	myCommState,w,BANKED
+	call	Switchcase8
+	bra		commState0
+	bra		commState1
+	bra		commState2
+	bra		commState3
+	bra		commState4
+	bra		commState5
+	bra		commState6
+	bra		commState7

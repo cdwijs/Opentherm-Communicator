@@ -1,6 +1,6 @@
 ;*******************************************************************************
 ;    manchester-rx-states.inc                                                  *
-;    Copyright 2013 Cedric de Wijs.                                            *
+;    Copyright 2013-2014 Cedric de Wijs.                                       *
 ;                                                                              *
 ;    This file is part of Opentherm Communicator                               *
 ;                                                                              *

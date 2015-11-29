@@ -1,6 +1,6 @@
 ;*******************************************************************************
 ;    ot-comm-states.inc                                                        *
-;    Copyright 2013 Cedric de Wijs.                                            *
+;    Copyright 2013-2014 Cedric de Wijs.                                       *
 ;                                                                              *
 ;    This file is part of Opentherm Communicator                               *
 ;                                                                              *
@@ -140,22 +140,19 @@ commStateCheckMessageA:
 	;first check Rx errors (late and early edges)
 	
 	;now check parity
-	movf	myRxBuffer+3,w,BANKED
+	movf	myRxBuffer+3,w,BANKED ;reduce parity from 4 bytes into 1
 	xorwf	myRxBuffer+2,w,BANKED
 	xorwf	myRxBuffer+1,w,BANKED
 	xorwf	myRxBuffer+0,w,BANKED
 	movwf	regparity,BANKED
-
-	swapf	regparity,w,BANKED
+	swapf	regparity,w,BANKED ;reduce parity from 1 byte into 1 nibble
     xorwf   regparity,f,BANKED
 	bcf		Carry
     rrcf	regparity,w,BANKED
     xorwf   regparity,f,BANKED
     btfsc   regparity,2 
-    incf	regparity,f,BANKED
-    ;parity is now in lowest bit of reg0
-	;0 means even, 1 means error
-	btfss	regparity,0,BANKED
+    incf	regparity,f,BANKED ;parity is now in lowest bit of reg0
+	btfss	regparity,0,BANKED ;0 means even parity, 1 means error
 	bra		commNextState
 
 #ifdef DEBUG_SERIAL
@@ -169,6 +166,11 @@ commStateCheckMessageA:
 #undefine regparity
 		
 commStateCheckMessageID:
+	;prepare answer buffer
+	movff	myRxBuffer+OFFSET_MSG_ID,myTxBuffer+OFFSET_MSG_ID
+	clrf	myTxBuffer+OFFSET_DATA_HIGH,BANKED
+	clrf	myTxBuffer+OFFSET_DATA_LOW,BANKED
+	;check message ID
 	movf	myRxBuffer+OFFSET_MSG_ID,w
 	xorlw	ID_MASTER_SLAVE_FLAGS
 	bz		commIdSlaveFlags
@@ -209,27 +211,54 @@ commStateCheckMessageID:
 	;prepare answer: "ID not known"
 	movlw	(MSG_TYPE_UNKNOWN_DATA_ID << 4)
 	movwf	myTxBuffer+OFFSET_MSG_TYPE,BANKED
-	movff	myRxBuffer+OFFSET_MSG_ID,myTxBuffer+OFFSET_MSG_ID
-	clrf	myTxBuffer+OFFSET_DATA_HIGH,BANKED
-	clrf	myTxBuffer+OFFSET_DATA_LOW,BANKED
 	bra		commNextState
 	
 commIdSlaveFlags:
-	clrf	myTxBuffer+OFFSET_DATA_LOW,BANKED
-	clrf	myTxBuffer+OFFSET_DATA_HIGH,BANKED
 	bsf		myTxBuffer+OFFSET_DATA_LOW,1,BANKED ;enable CH mode
 	bsf		myTxBuffer+OFFSET_DATA_LOW,3,BANKED ;enable flame (seems to only work in combination with bit1)
 ;	bsf		myTxBuffer+OFFSET_DATA_LOW,5,BANKED ;enable CH2 mode
 	bra		commStateCheckKnown
 commIdTempSetpoint:
 	bra		commStateCheckKnown
+
 commIdRemoteOverwrite:
+	movff	myCmdSetpoint+HIGH_BYTE,myTxBuffer+OFFSET_DATA_HIGH
+	movff	myCmdSetpoint+LOW_BYTE,myTxBuffer+OFFSET_DATA_LOW
 	bra		commStateCheckKnown
 commIdMaxRelMod:
 	bra		commStateCheckKnown
 commIdMaxBoilerCapacity:
 	bra		commStateCheckKnown
 commIdRoomSetpoint:
+	;Check if room setpoint is close to remote override. If so, clear override
+	
+	;Another "nice" feature of the Remeha iSense thermostat: It
+	;doesn't set the setpoint to the exact value requested. So we
+	;have to allow for some variation. The delta chosen is 0.125
+	;as that should be enough and is easy to do with bit operations
+#define temp reg0
+	movf	myCmdSetpoint+LOW_BYTE,w,BANKED			;Calculate the difference between ...
+	subwf	myRxBuffer+OFFSET_DATA_LOW,W,BANKED		;... the received value and the ...
+	movwf	temp,BANKED									;... desired setpoint
+	movf	myCmdSetpoint+HIGH_BYTE,w,BANKED		;Get the units of the requested setpoint
+	btfss	Carry									;Check for borrow from fractional part
+	addlw	1										;Adjust the integer part
+	subwf	myRxBuffer+OFFSET_DATA_HIGH,W,BANKED	;Calculate the difference
+	btfss	Carry
+	xorlw	-1										;Make the result positive
+	btfss	Zero
+	bra		commIdRoomSetpointDiff					;Values differ more than 1 degree
+	btfss	Carry									;Carry is set if setpoint <= value
+	comf	temp,F,BANKED							;Invert the fraction
+	movlw	b'11100000'								;Only the lower 5 bits may be set
+	andwf	temp,W,BANKED							;Reset the lower 5 bits
+	btfss	Zero									;Result should be 0 for a match
+	bra		commIdRoomSetpointDiff					;Values differ more than 0.125 degrees
+#undefine temp
+	clrf	myCmdSetpoint+HIGH_BYTE,BANKED
+	clrf	myCmdSetpoint+LOW_BYTE,BANKED
+
+commIdRoomSetpointDiff:
 	bra		commStateCheckKnown
 commIdRelModLevel:
 	bra		commStateCheckKnown
@@ -254,11 +283,6 @@ commIdMaxChWaterSetpoint:
 commIdRemoteOverRide:
 	bra		commStateCheckKnown
 
-
-
-
-
-
 commStateCheckKnown:
 #define messagetype reg0
 	;figure out message type (bit6,5,4 of MSB)
@@ -277,13 +301,9 @@ commStateCheckKnown:
 #undefine messagetype
 	
 commReadData: ;thermostat is reading from us
-	;for now send always 0, wich is invalid :-)
 	movlw	(MSG_TYPE_READ_ACK << 4)
 ;	movlw	(MSG_TYPE_DATA_INVALID << 4)
 	movwf	myTxBuffer+OFFSET_MSG_TYPE,BANKED
-	movff	myRxBuffer+OFFSET_MSG_ID,myTxBuffer+OFFSET_MSG_ID
-;	clrf	myTxBuffer+OFFSET_DATA_HIGH,BANKED ;remove this, and fill in the data above
-;	clrf	myTxBuffer+OFFSET_DATA_LOW,BANKED
 	bra		commNextState
 
 commWriteData: 
@@ -431,7 +451,8 @@ commDone:
 #undefine commIdRemoteOverwrite		
 #undefine commIdMaxRelMod				
 #undefine commIdMaxBoilerCapacity		
-#undefine commIdRoomSetpoint			
+#undefine commIdRoomSetpoint
+#undefine commIdRoomSetpointDiff			
 #undefine commIdRelModLevel			
 #undefine commIdWaterPressInCh		
 #undefine commIdDayOfWeek				
@@ -453,7 +474,9 @@ commDone:
 #undefine myCommState			
 #undefine myCommTimer
 #undefine myRxBuffer
-#undefine myTxBuffer			
+#undefine myTxBuffer
+#undefine myCmdSetpoint
+			
 ;bits
 #undefine bitCommBusy			
 #undefine bitCommStartMsg		

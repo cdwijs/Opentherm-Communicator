@@ -1,6 +1,6 @@
 ;*******************************************************************************
 ;    serial.inc                                                                *
-;    Copyright 2013 Cedric de Wijs.                                            *
+;    Copyright 2013-2014 Cedric de Wijs.                                       *
 ;                                                                              *
 ;    This file is part of Opentherm Communicator                               *
 ;                                                                              *
@@ -30,6 +30,19 @@
 ;    OpenTherm,OpenTherm/Plus,OpenTherm/Lite and the OpenTherm logo are        *
 ;    registered trademarks of The OpenTherm Association.                       *
 ;*******************************************************************************
+
+
+
+; Serial command format:
+; "SG1400"+cr+lf
+; 
+;
+;
+;
+
+
+
+
 #ifdef CPU_16MHZ
 	;Baudrate 19K2
 	;BRGH=1, BRG16=1
@@ -66,6 +79,7 @@ serialInit:
 	bsf		TRISC,6,ACCESS
 	bsf		RCSTA1,SPEN,ACCESS
 	bsf		TXSTA1,TXEN,ACCESS
+	bsf		RCSTA1,CREN,ACCESS
 #endif
 #ifdef P18F2455_2550_4455_4550
 	movlw	high(INIT_SPBRG)
@@ -78,6 +92,7 @@ serialInit:
 	bcf		TXSTA,SYNC,ACCESS
 	bsf		TRISC,6,ACCESS
 	bsf		RCSTA,SPEN,ACCESS
+	bsf		RCSTA,RCEN,ACCESS ;*untested*
 	bsf		TXSTA,TXEN,ACCESS
 #endif
 #ifdef RS232_GREETING
@@ -129,8 +144,36 @@ serialPutByte
 	return
 #undefine regserialbyte
 
+serialRxInt:
+#ifdef P18F2455_2550_4455_4550 ;*untested*
+#endif
+#ifdef P18F2x4xK22
+	btfsc	RCSTA1,OERR,ACCESS
+	bra		serialRxIntOERR
+	btfsc	RCSTA1,FERR,ACCESS
+	bra		serialRxIntFERR
+	;on no error, store the received byte in ringbuffer.
+	;fsr0 is reserved for interrupt
+	lfsr	0,myRs232RxBuf
+	movf	myRs232RxProducer,w,BANKED
+	andlw	SERIAL_BUF_MASK
+	movff	RCREG1,PLUSW0
+	incf	myRs232RxProducer,w,BANKED
+	andlw	SERIAL_BUF_MASK
+	movwf	myRs232RxProducer,BANKED
+	bra		serialRxIntDone
+#endif
+serialRxIntOERR: ;on overrun error, clear and set CREN bit, also read and ignore RCREG
+	bcf		RCSTA1,CREN,ACCESS
+	bsf		RCSTA1,CREN,ACCESS
+serialRxIntFERR: ;on framing error, read byte from RCREG, but ignore
+	movf	RCREG1,w,ACCESS
+	bra		serialRxIntDone
+serialRxIntDone:
+	return
+
 serialTxInt:
-;need to save / restore FSR0 here, or only use fsr0 in interrupt
+	;fsr0 is reserved for interrupt
 	;if producer != consumer, there's data to be send
 	lfsr	0,myRs232TxBuf
 	movf	myRs232TxConsumer,w,BANKED
@@ -153,6 +196,5 @@ serialTxIntBusy:
 	#ifdef P18F2x4xK22
 		movff	PLUSW0,TXREG1
 	#endif
-	
 serialTxIntDone:
 	return

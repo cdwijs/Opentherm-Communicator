@@ -1,6 +1,6 @@
 ;*******************************************************************************
 ;    manchester.inc                                                            *
-;    Copyright 2013 Cedric de Wijs.                                            *
+;    Copyright 2013-2014 Cedric de Wijs.                                       *
 ;                                                                              *
 ;    This file is part of Opentherm Communicator                               *
 ;                                                                              *
@@ -107,21 +107,6 @@
 
 #define NUM_TX_BITS	d'32'
 #define NUM_RX_BITS d'32'
-
-SwitchCase2:
-		andlw	h'01'
-SwitchCase4:
-		andlw	h'03'
-Switchcase8:
-		andlw	h'07'
-Switchcase16:
-		andlw	h'0F'
-        rlncf   WREG ;cdw, does not work when access or banked is specified?
-        addwf   TOSL
-        movlw   0
-        addwfc  TOSH
-        addwfc  TOSU            ; for >64K bytes memory
-        return 
 
 ;jumptable StateTx1
 int100usec:

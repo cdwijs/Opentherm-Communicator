@@ -1,6 +1,6 @@
 ;*******************************************************************************
 ;    interrupt.inc                                                             *
-;    Copyright 2013 Cedric de Wijs.                                            *
+;    Copyright 2013-2014 Cedric de Wijs.                                       *
 ;                                                                              *
 ;    This file is part of Opentherm Communicator                               *
 ;                                                                              *
@@ -35,10 +35,13 @@ interruptInit:
 	bsf	IPR1,TMR2IP,ACCESS	;1 = High priority for TMR2
 	#ifdef P18F2x4xK22
 		bsf	IPR1,TX1IP,ACCESS	;1 = High priority for TX1
+		bsf IPR1,RC1IP,ACCESS	;1 = High priority for RX1
 	#endif
 	#ifdef P18F2455_2550_4455_4550
-		bsf	IPR1,TXIP		;1= EUSART Transmit Interrupt Priority bit
+		bsf	IPR1,TXIP		;1 = EUSART Transmit Interrupt Priority bit
+		bsf IPR1,RXIP		;1 = EUSART Receive Interrupt Priority bit *untested*
 	#endif
+	bsf PIE1,RC1IE,ACCESS	;1 = EUSART1 Receive Interrupt Enable bit
 	bsf	PIE1,TMR2IE,ACCESS	;1 = Enables the TMR2 to PR2 match interrupt 
 	bsf	INTCON,GIEH,ACCESS	;1 = Enables all high priority interrupts
 	return
@@ -47,12 +50,17 @@ interruptHigh:
 	btfsc	PIR1,TMR2IF,ACCESS	;1 = TMR2 to PR2 match occurred (must be cleared by software) 
 	call	int100usec			;replace by goto construction, to free up 1 stacklevel
 	#ifdef P18F2x4xK22
+		btfsc	PIR1,RC1IF,ACCESS	;1 = receive buffer, RCREG1, is full
+		call	serialRxInt
 		btfsc	PIR1,TX1IF,ACCESS	;1 = The EUSART1 transmit buffer, TXREG1, is empty
+		call	serialTxInt
 	#endif
 	#ifdef P18F2455_2550_4455_4550
+		btfsc	PIR1,RCIF			; *untested*
+		call	serialRxInt			;1 = receive buffer, RCREG1, is full
 		btfsc	PIR1,TXIF			;1 = The EUSART1 transmit buffer, TXREG1, is empty
+		call	serialTxInt
 	#endif
-	call	serialTxInt
 	retfie	FAST				;auto-restore Wreg, Status and BSR registers
 	
 interruptLow:
