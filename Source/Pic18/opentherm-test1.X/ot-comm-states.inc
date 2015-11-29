@@ -217,9 +217,16 @@ commIdSlaveFlags:
 	bcf		myTxBuffer+OFFSET_DATA_LOW,1,BANKED ;disable CH mode
 	bcf		myTxBuffer+OFFSET_DATA_LOW,3,BANKED ;disable flame (seems to only work in combination with bit1)
 	btfss	bitSymFlame,BANKED 
-	bra		commStateCheckKnown
+	bra		commIdFlagsDHW ;Domestic Hot Water
 	bsf		myTxBuffer+OFFSET_DATA_LOW,1,BANKED ;enable CH mode
 	bsf		myTxBuffer+OFFSET_DATA_LOW,3,BANKED ;enable flame (seems to only work in combination with bit1)
+commIdFlagsDHW:
+;	bcf		myTxBuffer+OFFSET_DATA_LOW,5,BANKED ;disable CH2 mode
+;	bcf		myTxBuffer+OFFSET_DATA_LOW,2,BANKED ;disable DHW
+;	btfss	bitSymBoil,BANKED
+;	bra		commStateCheckKnown
+;	bsf		myTxBuffer+OFFSET_DATA_LOW,5,BANKED ;enable CH2 mode
+;	bsf		myTxBuffer+OFFSET_DATA_LOW,2,BANKED ;enable DHW
 	bra		commStateCheckKnown
 commIdTempSetpoint:
 	bra		commStateCheckKnown
@@ -463,7 +470,8 @@ commDone:
 #undefine commIdFlowWaterTemp			
 #undefine commIdDwhTemp				
 #undefine commIdOutsideTemp			
-#undefine commIdReturnWaterTemp		
+#undefine commIdReturnWaterTemp
+#undefine commIdFlagsDHW		
 #undefine commIdDhwSetpoint			
 #undefine commIdMaxChWaterSetpoint	
 #undefine commIdRemoteOverRide		

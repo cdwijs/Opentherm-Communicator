@@ -95,6 +95,7 @@ commJumps:
 	#define commIdFlowWaterTemp			comm0IdFlowWaterTemp
 	#define commIdDwhTemp				comm0IdDwhTemp
 	#define commIdOutsideTemp			comm0IdOutsideTemp
+	#define commIdFlagsDHW				comm0IdFlagsDHW
 	#define commIdReturnWaterTemp		comm0IdReturnWaterTemp
 	#define commIdDhwSetpoint			comm0IdDhwSetpoint
 	#define commIdMaxChWaterSetpoint	comm0IdMaxChWaterSetpoint
@@ -149,6 +150,7 @@ commJumps:
 	#define commIdFlowWaterTemp			comm1IdFlowWaterTemp
 	#define commIdDwhTemp				comm1IdDwhTemp
 	#define commIdOutsideTemp			comm1IdOutsideTemp
+	#define commIdFlagsDHW				comm1IdFlagsDHW
 	#define commIdReturnWaterTemp		comm1IdReturnWaterTemp
 	#define commIdDhwSetpoint			comm1IdDhwSetpoint
 	#define commIdMaxChWaterSetpoint	comm1IdMaxChWaterSetpoint
@@ -203,6 +205,7 @@ commJumps:
 	#define commIdFlowWaterTemp			comm2IdFlowWaterTemp
 	#define commIdDwhTemp				comm2IdDwhTemp
 	#define commIdOutsideTemp			comm2IdOutsideTemp
+	#define commIdFlagsDHW				comm2IdFlagsDHW
 	#define commIdReturnWaterTemp		comm2IdReturnWaterTemp
 	#define commIdDhwSetpoint			comm2IdDhwSetpoint
 	#define commIdMaxChWaterSetpoint	comm2IdMaxChWaterSetpoint
@@ -257,6 +260,7 @@ commJumps:
 	#define commIdFlowWaterTemp			comm3IdFlowWaterTemp
 	#define commIdDwhTemp				comm3IdDwhTemp
 	#define commIdOutsideTemp			comm3IdOutsideTemp
+	#define commIdFlagsDHW				comm3IdFlagsDHW
 	#define commIdReturnWaterTemp		comm3IdReturnWaterTemp
 	#define commIdDhwSetpoint			comm3IdDhwSetpoint
 	#define commIdMaxChWaterSetpoint	comm3IdMaxChWaterSetpoint
@@ -311,6 +315,7 @@ commJumps:
 	#define commIdFlowWaterTemp			comm4IdFlowWaterTemp
 	#define commIdDwhTemp				comm4IdDwhTemp
 	#define commIdOutsideTemp			comm4IdOutsideTemp
+	#define commIdFlagsDHW				comm4IdFlagsDHW
 	#define commIdReturnWaterTemp		comm4IdReturnWaterTemp
 	#define commIdDhwSetpoint			comm4IdDhwSetpoint
 	#define commIdMaxChWaterSetpoint	comm4IdMaxChWaterSetpoint
@@ -365,6 +370,7 @@ commJumps:
 	#define commIdFlowWaterTemp			comm5IdFlowWaterTemp
 	#define commIdDwhTemp				comm5IdDwhTemp
 	#define commIdOutsideTemp			comm5IdOutsideTemp
+	#define commIdFlagsDHW				comm5IdFlagsDHW
 	#define commIdReturnWaterTemp		comm5IdReturnWaterTemp
 	#define commIdDhwSetpoint			comm5IdDhwSetpoint
 	#define commIdMaxChWaterSetpoint	comm5IdMaxChWaterSetpoint
@@ -419,6 +425,7 @@ commJumps:
 	#define commIdFlowWaterTemp			comm6IdFlowWaterTemp
 	#define commIdDwhTemp				comm6IdDwhTemp
 	#define commIdOutsideTemp			comm6IdOutsideTemp
+	#define commIdFlagsDHW				comm6IdFlagsDHW
 	#define commIdReturnWaterTemp		comm6IdReturnWaterTemp
 	#define commIdDhwSetpoint			comm6IdDhwSetpoint
 	#define commIdMaxChWaterSetpoint	comm6IdMaxChWaterSetpoint
@@ -473,6 +480,7 @@ commJumps:
 	#define commIdFlowWaterTemp			comm7IdFlowWaterTemp
 	#define commIdDwhTemp				comm7IdDwhTemp
 	#define commIdOutsideTemp			comm7IdOutsideTemp
+	#define commIdFlagsDHW				comm7IdFlagsDHW
 	#define commIdReturnWaterTemp		comm7IdReturnWaterTemp
 	#define commIdDhwSetpoint			comm7IdDhwSetpoint
 	#define commIdMaxChWaterSetpoint	comm7IdMaxChWaterSetpoint
